@@ -5,7 +5,7 @@
 {% macro nav_items() %}
   {% set ep = request.endpoint %}
   <a href="{{ url_for('panel.dashboard') }}" {% if ep == 'panel.dashboard' %}aria-current="page"{% endif %}>{{ icon('home') }}Bugün</a>
-  <a class="is-soon" aria-disabled="true">{{ icon('calendar') }}Takvim<span class="soon">Faz 4</span></a>
+  <a href="{{ url_for('appointments.calendar') }}" {% if ep and ep.startswith('appointments.') and ep != 'appointments.quick_new' %}aria-current="page"{% endif %}>{{ icon('calendar') }}Takvim</a>
   {% if can('customers.view') %}<a href="{{ url_for('customers.index') }}" {% if ep and ep.startswith('customers.') %}aria-current="page"{% endif %}>{{ icon('users') }}Müşteriler</a>{% endif %}
   {% if can('payments.view') %}<a class="is-soon" aria-disabled="true">{{ icon('card') }}Ödemeler<span class="soon">Faz 7</span></a>{% endif %}
   {% if can('messages.view') %}<a class="is-soon" aria-disabled="true">{{ icon('chat') }}WhatsApp<span class="soon">Faz 8</span></a>{% endif %}
@@ -65,8 +65,8 @@
 
 <nav class="bottom-nav" aria-label="Hızlı erişim">
   <a href="{{ url_for('panel.dashboard') }}" {% if request.endpoint == 'panel.dashboard' %}aria-current="page"{% endif %}>{{ icon('home') }}BUGÜN</a>
-  <a class="is-soon" aria-disabled="true" title="Faz 4">{{ icon('calendar') }}RANDEVULAR</a>
-  {% if can('customers.edit') %}<a class="bottom-nav__fab" href="{{ url_for('customers.new') }}" aria-label="Yeni müşteri">{{ icon('plus') }}</a>
+  <a href="{{ url_for('appointments.calendar') }}" {% if request.endpoint and request.endpoint.startswith('appointments.') and request.endpoint != 'appointments.quick_new' %}aria-current="page"{% endif %}>{{ icon('calendar') }}RANDEVULAR</a>
+  {% if can('customers.edit') or can('appointments.manage') %}<a class="bottom-nav__fab" href="{{ url_for('appointments.quick_new') }}" aria-label="Yeni randevu veya müşteri">{{ icon('plus') }}</a>
   {% else %}<span></span>{% endif %}
   <a href="{{ url_for('customers.index') }}" {% if request.endpoint and request.endpoint.startswith('customers.') %}aria-current="page"{% endif %}>{{ icon('users') }}MÜŞTERİLER</a>
   <button type="button" data-open-drawer aria-controls="drawer">{{ icon('menu') }}MENÜ</button>

@@ -179,7 +179,7 @@ Mobilde alt sekme çubuğu: **Bugün · Randevular · + (Randevu/Müşteri) · M
 | 1 | Veritabanı şeması, migration, auth, roller, CSRF, rate limit, audit log, demo veri, panel iskeleti | ✅ (34 test) |
 | 2 | Müşteri CRM: liste, arama, hızlı ekle, profil, notlar, KVKK izinleri | ✅ (+22 test) |
 | 3 | Hizmet ve personel yönetimi, çalışma saatleri, mola, izin | ⏳ |
-| 4 | Randevu motoru (uygun saat hesaplama, çakışma kontrolü), durumlar, takvim | ⏳ |
+| 4 | Randevu motoru (uygun saat hesaplama, çakışma kontrolü), durumlar, takvim | ✅ (+14 test; Faz 5–6 temeli: seans düşümü ve tekrar tarihi) |
 | 5 | Lazer paket/seans ve bölge takibi | ⏳ |
 | 6 | Tekrar periyotları (sonraki işlem tarihi) | ⏳ |
 | 7 | Ödeme ve tahsilat hareketleri | ⏳ |

@@ -1,0 +1,91 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Takvim{% endblock %}
+{% block content %}
+{% set vparam = {'gun':'gun','hafta':'hafta','ay':'ay'} %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Takvim</div>
+    <h1>
+      {% if view == 'gun' %}{{ day.day }} {{ TR_MONTHS[day.month-1] }} <span class="muted" style="font-size:.6em">{{ TR_WEEKDAYS[day.weekday()] }}</span>
+      {% elif view == 'hafta' %}{{ days[0].day }} {{ TR_MONTHS[days[0].month-1] if days[0].month != days[6].month else '' }} – {{ days[6].day }} {{ TR_MONTHS[days[6].month-1] }}
+      {% else %}{{ TR_MONTHS[month_first.month-1] }} {{ month_first.year }}{% endif %}
+    </h1>
+  </div>
+  {% if can('appointments.manage') %}<a class="btn btn--primary" href="{{ url_for('appointments.new', tarih=day.isoformat()) }}">+ Randevu</a>{% endif %}
+</div>
+
+<div class="cal-toolbar">
+  <div class="seg" role="tablist">
+    {% for k, l in [('gun','Gün'),('hafta','Hafta'),('ay','Ay')] %}
+      <a href="{{ url_for('appointments.calendar', gorunum=k, tarih=day.isoformat()) }}" aria-current="{{ 'true' if view == k else 'false' }}">{{ l }}</a>
+    {% endfor %}
+  </div>
+  <div class="cal-nav">
+    <a class="icon-btn" href="{{ url_for('appointments.calendar', gorunum=view, tarih=prev.isoformat()) }}" aria-label="Önceki">‹</a>
+    <a class="btn btn--sm" href="{{ url_for('appointments.calendar', gorunum=view) }}">Bugün</a>
+    <a class="icon-btn" href="{{ url_for('appointments.calendar', gorunum=view, tarih=next.isoformat()) }}" aria-label="Sonraki">›</a>
+  </div>
+</div>
+
+{% if view == 'gun' %}
+  <div class="card day-cal" style="--ppm: 1.5px; --hours: {{ end_h - start_h }}">
+    <div class="day-cal__scroll">
+      <div class="day-cal__grid" style="grid-template-columns: 52px repeat({{ staff|length }}, minmax(150px, 1fr))">
+        <div class="day-cal__corner"></div>
+        {% for s in staff %}<div class="day-cal__head"><span class="dot" style="background:{{ s.color }}"></span>{{ s.full_name }}</div>{% endfor %}
+        <div class="day-cal__gutter">
+          {% for h in range(start_h, end_h) %}<div class="day-cal__hour">{{ '%02d'|format(h) }}:00</div>{% endfor %}
+        </div>
+        {% for s in staff %}
+        <div class="day-cal__col">
+          {% for h in range(start_h, end_h) %}<div class="day-cal__line" style="top: calc({{ (h - start_h) * 60 }} * var(--ppm))"></div>{% endfor %}
+          {% for a in appts if a.staff_id == s.id %}
+            <a class="appt status-bg--{{ a.status }} {{ 'appt--short' if a.height < 45 }}" href="{{ url_for('appointments.detail', appointment_id=a.id) }}"
+               style="top: calc({{ a.top }} * var(--ppm)); height: calc({{ a.height }} * var(--ppm)); --c: {{ a.staff_color }}">
+              <span class="appt__time">{{ a.starts_at|time }}</span>
+              <span class="appt__who">{{ a.first_name }} {{ a.last_name }}</span>
+              <span class="appt__what">{{ a.service_name }}</span>
+            </a>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% if not appts %}<p class="muted" style="margin-top:12px">Bu gün için randevu yok.</p>{% endif %}
+
+{% elif view == 'hafta' %}
+  <div class="week-cal">
+    {% for d in days %}
+      <section class="card week-cal__day {{ 'is-today' if d == today }}">
+        <a class="week-cal__head" href="{{ url_for('appointments.calendar', gorunum='gun', tarih=d.isoformat()) }}">
+          <span>{{ TR_WEEKDAYS[d.weekday()][:3] }}</span><strong>{{ d.day }}</strong>
+          <span class="small muted">{{ by_day[d]|length or '' }}</span>
+        </a>
+        {% for a in by_day[d] %}
+          <a class="chip-appt status-bg--{{ a.status }}" href="{{ url_for('appointments.detail', appointment_id=a.id) }}" style="--c: {{ a.staff_color }}">
+            <b>{{ a.starts_at|time }}</b> {{ a.first_name }} {{ a.last_name[:1] }}. <span class="muted">· {{ a.service_name }}</span>
+          </a>
+        {% else %}<p class="small muted" style="margin:6px 0 0">—</p>{% endfor %}
+      </section>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="card month-cal">
+    {% for wd in TR_WEEKDAYS %}<div class="month-cal__wd">{{ wd[:3] }}</div>{% endfor %}
+    {% for d in cells %}
+      {% set c = counts.get(d) %}
+      <a class="month-cal__cell {{ 'is-out' if d.month != month_first.month }} {{ 'is-today' if d == today }}"
+         href="{{ url_for('appointments.calendar', gorunum='gun', tarih=d.isoformat()) }}">
+        <span class="month-cal__num">{{ d.day }}</span>
+        {% if c %}<span class="month-cal__count">{{ c.total - c.cancelled }}<small> randevu</small></span>{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="legend small">
+  {% for st in ['pending','confirmed','arrived','completed','cancelled','no_show'] %}<span class="status status--{{ st }}">{{ STATUS_LABELS[st] }}</span>{% endfor %}
+</div>
+{% endblock %}

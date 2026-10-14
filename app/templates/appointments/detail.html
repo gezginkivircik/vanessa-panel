@@ -1,0 +1,106 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Randevu{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow"><a href="{{ url_for('appointments.calendar', tarih=local_start.date().isoformat()) }}">Takvim</a></div>
+    <h1 class="tabular">{{ a.starts_at|time }} <span class="muted" style="font-size:.55em">{{ a.starts_at|date(true) }}</span></h1>
+  </div>
+  <span class="status status--{{ a.status }}" style="font-size:13px;padding:6px 12px">{{ STATUS_LABELS[a.status] }}</span>
+</div>
+
+<div class="grid-2">
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card__body">
+        <div style="display:flex;gap:14px;align-items:center">
+          <span class="avatar" aria-hidden="true">{{ a.first_name[:1] }}{{ a.last_name[:1] }}</span>
+          <div style="flex:1">
+            <a href="{{ url_for('customers.profile', customer_id=a.customer_id) }}" style="font-weight:600;font-size:17px;text-decoration:none">{{ a.first_name }} {{ a.last_name }}</a>
+            <div class="small muted">{{ phone_display(a.phone) }}{% if a.no_show_count %} · <span style="color:var(--st-no_show)">{{ a.no_show_count }} kez gelmedi</span>{% endif %}</div>
+          </div>
+          {% if can_wa(current_user) %}<a class="btn btn--wa btn--sm" href="{{ wa_link(a.phone) }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+        </div>
+        <dl class="kv" style="margin:16px 0 0">
+          <div><dt>Hizmet</dt><dd>{{ a.service_name }}<small>{{ a.duration_minutes }} dk</small></dd></div>
+          <div><dt>Uzman</dt><dd><span class="dot" style="background:{{ a.staff_color }}"></span> {{ a.staff_name }}<small>&nbsp;</small></dd></div>
+          <div><dt>Saat</dt><dd class="tabular">{{ a.starts_at|time }} – {{ a.ends_at|time }}<small>{{ a.starts_at|date }}</small></dd></div>
+          <div><dt>Ücret</dt><dd>{% if current_user.role != 'specialist' %}{{ a.price_kurus|money }}{% else %}—{% endif %}<small>{{ {'panel':'Panelden','online':'Online','whatsapp':'WhatsApp','phone':'Telefon'}[a.source] }}</small></dd></div>
+        </dl>
+        {% if pkg %}
+          <div style="margin-top:4px">
+            <div class="small"><strong>{{ pkg.name }}</strong> · {{ pkg.done }} / {{ pkg.total }} seans tamamlandı{% if a.status not in ['completed','cancelled','no_show'] %} · bu randevu <strong>{{ pkg.next }}. seans</strong>{% endif %}</div>
+            <div class="progress"><span style="width: {{ (pkg.done / pkg.total * 100)|round(1) }}%"></span></div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if can_manage and actions %}
+    <div class="card" style="margin-bottom:14px">
+      <div class="card__head"><div class="card__title">İşlemler</div></div>
+      <div class="card__body">
+        <div class="action-grid">
+          {% for st in actions %}
+            <form method="post" action="{{ url_for('appointments.set_status', appointment_id=a.id) }}">
+              <input type="hidden" name="_csrf" value="{{ csrf_token }}"><input type="hidden" name="status" value="{{ st }}">
+              <button class="btn btn--block action action--{{ st }}" type="submit"
+                {% if st in ['cancelled','no_show'] %}data-confirm="{{ a.first_name }} {{ a.last_name }} randevusu '{{ STATUS_LABELS[st] }}' olarak işaretlensin mi?"{% endif %}>{{ ACTION_LABELS[st] }}</button>
+            </form>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if can_manage and a.status not in ['completed','cancelled','no_show'] %}
+    <details class="card" style="margin-bottom:14px" {% if a.status in ['postponed','reschedule_needed'] %}open{% endif %}>
+      <summary class="card__head" style="cursor:pointer;padding-bottom:16px"><div class="card__title">Saati Değiştir</div><span class="small muted">aç</span></summary>
+      <form class="card__body" method="post" action="{{ url_for('appointments.reschedule', appointment_id=a.id) }}" data-reschedule>
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+        <input type="hidden" data-service value="{{ a.service_id }}">
+        <input type="hidden" name="staff_id" value="{{ a.staff_id }}" data-slot-staff>
+        <input type="hidden" name="time" value="" data-slot-time>
+        <div class="chips chips--wrap" data-staff-filter>
+          <label class="chip"><input type="radio" name="_staff_pref" value=""> Fark etmez</label>
+          {% for st in staff %}<label class="chip"><input type="radio" name="_staff_pref" value="{{ st.id }}" {% if st.id == a.staff_id %}checked{% endif %}> {{ st.full_name }}</label>{% endfor %}
+        </div>
+        <div class="field" style="margin-top:12px"><label>Yeni tarih</label>
+          <input class="input" type="date" name="date" value="{{ local_start.date().isoformat() }}" data-date></div>
+        <div class="slots" data-slot-picker data-endpoint="{{ url_for('appointments.api_slots') }}" data-exclude="{{ a.id }}"></div>
+        <div class="form-actions"><button class="btn btn--primary" type="submit">Yeni Saati Kaydet</button></div>
+      </form>
+    </details>
+    {% endif %}
+  </div>
+
+  <div>
+    {% if can_manage %}
+    <form class="card" method="post" action="{{ url_for('appointments.note', appointment_id=a.id) }}" style="margin-bottom:14px">
+      <div class="card__head"><div class="card__title">Randevu Notu</div></div>
+      <div class="card__body">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+        <textarea class="input" name="internal_note" rows="3" maxlength="2000" placeholder="Dahili not…">{{ a.internal_note or '' }}</textarea>
+        <div class="form-actions"><button class="btn btn--sm" type="submit">Kaydet</button></div>
+      </div>
+    </form>
+    {% elif a.internal_note %}
+      <div class="card" style="margin-bottom:14px"><div class="card__body">{{ a.internal_note }}</div></div>
+    {% endif %}
+    <div class="card">
+      <div class="card__head"><div class="card__title">Geçmiş</div></div>
+      <div class="card__body">
+        <ul class="timeline">
+        {% for h in history|reverse %}
+          <li><span class="timeline__dot timeline__dot--{{ h.to_status }}"></span>
+            <div class="timeline__date">{{ h.created_at|datetime }}</div>
+            <div class="timeline__title">{{ 'Oluşturuldu: ' if not h.from_status }}{{ STATUS_LABELS[h.to_status] }}</div>
+            <div class="timeline__detail">{{ h.user_name or ('WhatsApp' if h.channel == 'whatsapp' else 'Sistem') }}{% if h.reason %} · {{ h.reason }}{% endif %}</div>
+          </li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

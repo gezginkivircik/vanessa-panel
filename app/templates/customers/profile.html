@@ -13,7 +13,10 @@
 </div>
 
 {% if just_created %}
-<div class="alert alert--success">Müşteri kaydedildi. Online/panel randevu oluşturma Faz 4'te bu ekrana eklenecek.</div>
+<div class="alert alert--success" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+  <span>Müşteri kaydedildi.</span>
+  {% if can('appointments.manage') %}<a class="btn btn--primary btn--sm" href="{{ url_for('appointments.new', musteri=c.id) }}">Randevu Oluştur →</a>{% endif %}
+</div>
 {% endif %}
 
 <div class="profile-actions">
@@ -22,7 +25,7 @@
     <a class="btn" href="tel:{{ c.phone }}">{{ icon('phone') }} Ara</a>
   {% endif %}
   {% if can('customers.edit') %}<a class="btn" href="{{ url_for('customers.edit', customer_id=c.id) }}">{{ icon('edit') }} Düzenle</a>{% endif %}
-  <span class="btn" aria-disabled="true" title="Faz 4">+ Randevu Oluştur <span class="small muted">· Faz 4</span></span>
+  {% if can('appointments.manage') %}<a class="btn btn--primary" href="{{ url_for('appointments.new', musteri=c.id) }}">+ Randevu Oluştur</a>{% endif %}
 </div>
 
 <dl class="kv">
@@ -82,7 +85,7 @@
       <li class="{{ 'is-dim' if a.status in ['cancelled'] }}">
         <span class="agenda__time" style="font-size:13px">{{ a.starts_at|date }}<br><span class="muted">{{ a.starts_at|time }}</span></span>
         <span class="agenda__bar" style="background: {{ a.staff_color }}"></span>
-        <span><span class="agenda__who">{{ a.service_name }}</span><br><span class="agenda__what">{{ a.staff_name }}{% if a.price_kurus is not none %} · {{ a.price_kurus|money }}{% endif %}{% if a.source == 'online' %} · online{% endif %}</span></span>
+        <span><a class="agenda__who" href="{{ url_for('appointments.detail', appointment_id=a.id) }}" style="text-decoration:none">{{ a.service_name }}</a><br><span class="agenda__what">{{ a.staff_name }}{% if a.price_kurus is not none %} · {{ a.price_kurus|money }}{% endif %}{% if a.source == 'online' %} · online{% endif %}</span></span>
         <span class="status status--{{ a.status }}">{{ STATUS_LABELS[a.status] }}</span>
       </li>
     {% endfor %}

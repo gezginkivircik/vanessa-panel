@@ -39,7 +39,7 @@
       </div>
       <div class="next-card__actions">
         <a class="btn btn--primary btn--sm" href="{{ url_for('customers.profile', customer_id=n.customer_id) }}">Müşteriyi Aç</a>
-        <span class="btn btn--sm" aria-disabled="true" title="Faz 4">Randevuyu Aç · Faz 4</span>
+        <a class="btn btn--sm" href="{{ url_for('appointments.detail', appointment_id=n.id) }}">Randevuyu Aç</a>
       </div>
     {% else %}
       <p class="muted" style="margin:12px 0 0">Yaklaşan randevu yok.</p>
@@ -68,10 +68,10 @@
       <ul class="agenda">
         {% for a in d.today_list %}
         <li class="{{ 'is-dim' if a.status in ['cancelled','no_show'] }}">
-          <span class="agenda__time">{{ a.starts_at|time }}</span>
+          <a class="agenda__time" href="{{ url_for('appointments.detail', appointment_id=a.id) }}" style="text-decoration:none">{{ a.starts_at|time }}</a>
           <span class="agenda__bar" style="background: {{ a.staff_color }}"></span>
           <span><a class="agenda__who" href="{{ url_for('customers.profile', customer_id=a.customer_id) }}" style="text-decoration:none">{{ a.first_name }} {{ a.last_name }}</a><br><span class="agenda__what">{{ a.service_name }} · {{ a.staff_name }}</span></span>
-          <span class="status status--{{ a.status }}">{{ STATUS_LABELS[a.status] }}</span>
+          <a class="status status--{{ a.status }}" href="{{ url_for('appointments.detail', appointment_id=a.id) }}" style="text-decoration:none">{{ STATUS_LABELS[a.status] }}</a>
         </li>
         {% endfor %}
       </ul>

@@ -1,0 +1,14 @@
+{% extends "panel/layout.html" %}
+{% from "partials/icons.html" import icon %}
+{% block page_title %}Yeni{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Hızlı ekle</div><h1>Ne eklemek istiyorsunuz?</h1></div></div>
+<div class="quick-grid">
+  {% if can('appointments.manage') %}
+  <a class="card quick" href="{{ url_for('appointments.new') }}">{{ icon('calendar') }}<strong>Randevu</strong><span class="muted small">Mevcut müşteriye randevu oluştur</span></a>
+  {% endif %}
+  {% if can('customers.edit') %}
+  <a class="card quick" href="{{ url_for('customers.new') }}">{{ icon('users') }}<strong>Müşteri</strong><span class="muted small">Yeni müşteri kaydı</span></a>
+  {% endif %}
+</div>
+{% endblock %}

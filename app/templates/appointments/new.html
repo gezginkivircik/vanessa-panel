@@ -1,0 +1,85 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Yeni Randevu{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field__error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow"><a href="{{ url_for('appointments.calendar') }}">Takvim</a></div><h1>Yeni Randevu</h1></div></div>
+{% if errors.get('_') %}<div class="alert alert--error">{{ errors['_'] }}</div>{% endif %}
+
+<form class="card form-card booking" method="post" novalidate id="booking-form">
+  <div class="card__body">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+
+    <div class="step"><span class="step__n">1</span><span class="step__t">Müşteri</span></div>
+    <div class="field {{ 'field--error' if errors.get('customer_id') }}" data-customer-picker
+         data-endpoint="{{ url_for('customers.api_search') }}">
+      <input type="hidden" name="customer_id" value="{{ customer.id if customer else '' }}" data-customer-id>
+      <div class="picked" data-customer-chip {% if not customer %}hidden{% endif %}>
+        <span class="avatar" aria-hidden="true" data-customer-initials>{% if customer %}{{ customer.first_name[:1] }}{{ customer.last_name[:1] }}{% endif %}</span>
+        <span data-customer-name>{% if customer %}{{ customer.first_name }} {{ customer.last_name }}{% endif %}</span>
+        <button type="button" class="link-btn" data-customer-clear>Değiştir</button>
+      </div>
+      <div data-customer-search {% if customer %}hidden{% endif %} style="position:relative">
+        <input class="input" type="search" placeholder="İsim veya telefon ile ara" autocomplete="off" data-customer-input aria-label="Müşteri ara">
+        <div class="gsearch__results" data-customer-results hidden></div>
+        <a class="small" href="{{ url_for('customers.new') }}" style="display:inline-block;margin-top:8px">+ Yeni müşteri ekle</a>
+      </div>
+      {{ err('customer_id') }}
+    </div>
+
+    <div class="step"><span class="step__n">2</span><span class="step__t">Hizmet</span></div>
+    <div class="field {{ 'field--error' if errors.get('service_id') }}">
+      <select class="input" name="service_id" required data-service>
+        <option value="">Hizmet seçin…</option>
+        {% for s in services %}
+          <option value="{{ s.id }}" data-duration="{{ s.duration_minutes }}" {% if form.service_id|string == s.id|string %}selected{% endif %}>
+            {{ s.name }} · {{ s.duration_minutes }} dk · {{ (s.campaign_price_kurus if s.campaign_price_kurus is not none else s.price_kurus)|money }}
+          </option>
+        {% endfor %}
+      </select>{{ err('service_id') }}
+    </div>
+
+    <div class="step"><span class="step__n">3</span><span class="step__t">Uzman</span></div>
+    <div class="chips chips--wrap" data-staff-filter role="radiogroup" aria-label="Uzman">
+      <label class="chip"><input type="radio" name="_staff_pref" value="" checked> Fark etmez</label>
+      {% for st in staff %}<label class="chip" data-staff-chip="{{ st.id }}"><input type="radio" name="_staff_pref" value="{{ st.id }}" {% if form.staff_id|string == st.id|string %}checked{% endif %}> {{ st.full_name }}</label>{% endfor %}
+    </div>
+    {{ err('staff_id') }}
+
+    <div class="step"><span class="step__n">4</span><span class="step__t">Tarih</span></div>
+    <div class="field {{ 'field--error' if errors.get('date') }}">
+      <input class="input" type="date" name="date" value="{{ form.date or today.isoformat() }}" min="{{ today.isoformat() }}" required data-date>
+      <div class="date-quick">
+        <button type="button" class="chip" data-date-shift="0">Bugün</button>
+        <button type="button" class="chip" data-date-shift="1">Yarın</button>
+        <button type="button" class="chip" data-date-shift="2">+2 gün</button>
+      </div>
+      {{ err('date') }}
+    </div>
+
+    <div class="step"><span class="step__n">5</span><span class="step__t">Uygun saat</span></div>
+    <input type="hidden" name="staff_id" value="{{ form.staff_id or '' }}" data-slot-staff>
+    <input type="hidden" name="time" value="{{ form.time or '' }}" data-slot-time>
+    <div class="slots" data-slot-picker data-endpoint="{{ url_for('appointments.api_slots') }}">
+      <p class="muted small">Önce hizmet ve tarih seçin.</p>
+    </div>
+    {{ err('time') }}
+
+    <div class="step"><span class="step__n">6</span><span class="step__t">Durum ve not</span></div>
+    <div class="form-grid form-grid--2">
+      <div class="field"><label for="status">Durum</label>
+        <select class="input" id="status" name="status">
+          <option value="confirmed" {% if form.status == 'confirmed' %}selected{% endif %}>Onaylandı (müşteriyle teyitleşildi)</option>
+          <option value="pending" {% if form.status == 'pending' %}selected{% endif %}>Beklemede (teyit bekleniyor)</option>
+        </select></div>
+      <div class="field"><label for="internal_note">Dahili not <span class="muted">(opsiyonel)</span></label>
+        <input class="input" id="internal_note" name="internal_note" value="{{ form.internal_note or '' }}" maxlength="2000"></div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn--ghost" href="{{ url_for('appointments.calendar') }}">Vazgeç</a>
+      <button class="btn btn--primary" type="submit" data-booking-submit>Randevuyu Oluştur</button>
+    </div>
+  </div>
+</form>
+<script type="application/json" id="service-staff">{{ service_staff|tojson }}</script>
+{% endblock %}
