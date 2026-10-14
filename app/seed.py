@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 import secrets
 
 from .db import Connection
@@ -110,7 +111,8 @@ def seed_settings_and_templates(db: Connection) -> None:
     now = now_iso()
     for key, value in SETTINGS.items():
         if not db.scalar("SELECT 1 FROM settings WHERE key = ?", (key,)):
-            db.insert("settings", {"key": key, "value_json": value, "updated_at": now}, returning="")
+            db.insert("settings", {"key": key, "value_json": json.dumps(value, ensure_ascii=False),
+                                  "updated_at": now}, returning="")
     for key, name, cat, body, buttons in TEMPLATES:
         if not db.scalar("SELECT 1 FROM message_templates WHERE key = ?", (key,)):
             db.insert("message_templates", {"key": key, "name": name, "category": cat, "body": body,
