@@ -1,0 +1,57 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Müşteriler{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">CRM</div><h1>Müşteriler</h1></div>
+  {% if can('customers.edit') %}<a class="btn btn--primary" href="{{ url_for('customers.new') }}">+ Yeni Müşteri</a>{% endif %}
+</div>
+
+<form class="toolbar" method="get" role="search">
+  <input class="input" type="search" name="q" value="{{ q }}" placeholder="İsim, soyisim veya telefon" aria-label="Ara" autocomplete="off">
+  {% if flt %}<input type="hidden" name="filtre" value="{{ flt }}">{% endif %}
+  <button class="btn" type="submit">Ara</button>
+</form>
+<nav class="chips" aria-label="Filtre">
+  {% for key, label in FILTERS.items() %}
+    <a class="chip" href="{{ url_for('customers.index', q=q or None, filtre=key or None) }}" aria-current="{{ 'true' if key == flt else 'false' }}">{{ label }}</a>
+  {% endfor %}
+</nav>
+
+<div class="card">
+  <div class="card__head"><div class="card__title">{{ total }} müşteri</div></div>
+  <div class="card__body" style="padding:8px 0 0">
+  {% if rows %}
+    <ul class="clist">
+    {% for r in rows %}
+      <li><a href="{{ url_for('customers.profile', customer_id=r.id) }}">
+        <span class="avatar" aria-hidden="true">{{ r.first_name[:1] }}{{ r.last_name[:1] }}</span>
+        <span>
+          <span class="clist__name">{{ r.first_name }} {{ r.last_name }}</span>
+          {% if r.no_show_count %}<span class="status status--no_show" style="margin-left:6px">Gelmedi · {{ r.no_show_count }}</span>{% endif %}
+          <br><span class="clist__meta">{{ phone_display(r.phone) }}</span>
+        </span>
+        <span class="clist__side">
+          {% if r.next_visit %}<strong>{{ r.next_visit|date }}</strong>sonraki randevu
+          {% elif r.last_visit %}<span class="hide-sm"><strong>{{ r.last_visit|date }}</strong>son ziyaret</span>
+          {% else %}<span class="hide-sm">henüz ziyaret yok</span>{% endif %}
+        </span>
+      </a></li>
+    {% endfor %}
+    </ul>
+  {% else %}
+    <div style="padding:20px 18px 24px">
+      <p class="muted" style="margin-top:0">{{ 'Aramanızla eşleşen müşteri bulunamadı.' if q else 'Henüz müşteri yok.' }}</p>
+      {% if can('customers.edit') %}<a class="btn btn--primary" href="{{ url_for('customers.new', q=q or None) }}">+ Yeni müşteri ekle</a>{% endif %}
+    </div>
+  {% endif %}
+  </div>
+</div>
+
+{% if pages > 1 %}
+<nav class="pager" aria-label="Sayfalar">
+  {% if page > 1 %}<a class="btn btn--sm" href="{{ url_for('customers.index', q=q or None, filtre=flt or None, sayfa=page-1) }}">Önceki</a>{% endif %}
+  <span class="small muted" style="align-self:center">{{ page }} / {{ pages }}</span>
+  {% if page < pages %}<a class="btn btn--sm" href="{{ url_for('customers.index', q=q or None, filtre=flt or None, sayfa=page+1) }}">Sonraki</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

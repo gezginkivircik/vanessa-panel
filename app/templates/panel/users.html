@@ -1,0 +1,42 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Kullanıcılar{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Yönetim</div><h1>Kullanıcılar</h1></div>
+  <a class="btn btn--primary" href="{{ url_for('panel.user_new') }}">Yeni Kullanıcı</a>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table class="table table--stack">
+      <thead><tr><th>Ad Soyad</th><th>Kullanıcı adı</th><th>Rol</th><th>Personel</th><th>Son giriş</th><th>Durum</th><th></th></tr></thead>
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td data-label="Ad Soyad"><strong>{{ u.full_name }}</strong></td>
+          <td data-label="Kullanıcı adı">{{ u.username }}</td>
+          <td data-label="Rol"><span class="tag">{{ ROLE_LABELS[u.role] }}</span></td>
+          <td data-label="Personel">{{ u.staff_name or '—' }}</td>
+          <td data-label="Son giriş" class="tabular">{{ u.last_login_at|datetime }}</td>
+          <td data-label="Durum">
+            {% if not u.is_active %}<span class="status status--completed">Pasif</span>
+            {% elif u.must_change_password %}<span class="status status--pending">Şifre değişmeli</span>
+            {% else %}<span class="status status--confirmed">Aktif</span>{% endif %}
+          </td>
+          <td class="row-actions">
+            <a class="btn btn--sm" href="{{ url_for('panel.user_edit', user_id=u.id) }}">Düzenle</a>
+            {% if u.id != current_user.id %}
+            <form method="post" action="{{ url_for('panel.user_toggle', user_id=u.id) }}">
+              <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+              <input type="hidden" name="active" value="{{ '0' if u.is_active else '1' }}">
+              <button class="btn btn--sm {{ 'btn--danger' if u.is_active }}" type="submit"
+                      data-confirm="{{ u.full_name }} {{ 'pasif' if u.is_active else 'aktif' }} yapılsın mı?">{{ 'Pasif yap' if u.is_active else 'Aktif yap' }}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

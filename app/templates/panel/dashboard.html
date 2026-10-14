@@ -1,0 +1,97 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Bugün{% endblock %}
+{% block content %}
+<section class="hello">
+  <div class="hello__date">{{ today_label }}</div>
+  <h1 class="hello__title">{{ greeting }} {{ first_name }}</h1>
+</section>
+
+<div class="today-hero">
+  <article class="card today-card">
+    <div class="card__title">Bugün</div>
+    <div class="today-card__num tabular" style="margin-top:10px">{{ d.today_total }}<small>randevu</small></div>
+    <div class="today-card__chips">
+      {% for st in ['confirmed','pending','arrived','completed','cancelled','no_show','reschedule_needed','postponed'] %}
+        {% if d.today_by_status.get(st) %}
+          <span class="status status--{{ st }}">{{ STATUS_LABELS[st] }} · {{ d.today_by_status[st] }}</span>
+        {% endif %}
+      {% endfor %}
+      {% if not d.today_total %}<span class="muted small">Bugün için randevu yok.</span>{% endif %}
+    </div>
+  </article>
+
+  <article class="card next-card" aria-label="Sıradaki randevu">
+    <div class="card__title">Sıradaki Randevu</div>
+    {% set n = d.next_appointment %}
+    {% if n %}
+      <div class="next-card__time tabular" style="margin-top:10px">{{ n.starts_at|time }}</div>
+      {% if n.starts_at|date != d.today|date %}<div class="small muted">{{ n.starts_at|date(true) }}</div>{% endif %}
+      <div class="next-card__name">{{ n.first_name }} {{ n.last_name }}</div>
+      <div class="next-card__svc">{{ n.service_name }} · <span class="muted">{{ n.staff_name }}</span></div>
+      {% if n.package %}
+        <div class="small" style="margin-top:10px"><strong>{{ n.package.next }}. Seans</strong> <span class="muted">· {{ n.package.done }} / {{ n.package.total }} tamamlandı</span></div>
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="{{ n.package.total }}" aria-valuenow="{{ n.package.done }}">
+          <span style="width: {{ (n.package.done / n.package.total * 100)|round(1) }}%"></span>
+        </div>
+      {% endif %}
+      <div class="next-card__actions">
+        <span class="status status--{{ n.status }}">{{ STATUS_LABELS[n.status] }}</span>
+      </div>
+      <div class="next-card__actions">
+        <a class="btn btn--primary btn--sm" href="{{ url_for('customers.profile', customer_id=n.customer_id) }}">Müşteriyi Aç</a>
+        <span class="btn btn--sm" aria-disabled="true" title="Faz 4">Randevuyu Aç · Faz 4</span>
+      </div>
+    {% else %}
+      <p class="muted" style="margin:12px 0 0">Yaklaşan randevu yok.</p>
+    {% endif %}
+  </article>
+</div>
+
+<section class="stats" aria-label="Özet">
+  <div class="card stat"><div class="stat__label">Yarın</div><div class="stat__value">{{ d.tomorrow_total }}</div><div class="stat__hint">randevu</div></div>
+  <div class="card stat"><div class="stat__label">Bekleyen Onay</div><div class="stat__value">{{ d.pending_confirmations }}</div><div class="stat__hint">yaklaşan</div></div>
+  <div class="card stat"><div class="stat__label">Bugün Gelen</div><div class="stat__value">{{ d.arrived_today }}</div><div class="stat__hint">müşteri</div></div>
+  <div class="card stat"><div class="stat__label">Bugün İptal</div><div class="stat__value">{{ d.cancelled_today }}</div><div class="stat__hint">randevu</div></div>
+  <div class="card stat"><div class="stat__label">Toplam Müşteri</div><div class="stat__value">{{ d.total_customers }}</div><div class="stat__hint">kayıtlı</div></div>
+  <div class="card stat"><div class="stat__label">Bu Ay</div><div class="stat__value">{{ d.month_appointments }}</div><div class="stat__hint">randevu</div></div>
+  {% if d.month_revenue is not none %}
+  <div class="card stat"><div class="stat__label">Bu Ay Ciro</div><div class="stat__value stat__value--money tabular">{{ d.month_revenue|money }}</div><div class="stat__hint">satış toplamı</div></div>
+  <div class="card stat"><div class="stat__label">Bu Ay Tahsilat</div><div class="stat__value stat__value--money tabular">{{ d.month_collected|money }}</div><div class="stat__hint">kasaya giren</div></div>
+  {% endif %}
+</section>
+
+<div class="grid-2">
+  <article class="card">
+    <div class="card__head"><div class="card__title">Bugünün Akışı</div><span class="small muted">{{ d.today_list|length }} kayıt</span></div>
+    <div class="card__body">
+      {% if d.today_list %}
+      <ul class="agenda">
+        {% for a in d.today_list %}
+        <li class="{{ 'is-dim' if a.status in ['cancelled','no_show'] }}">
+          <span class="agenda__time">{{ a.starts_at|time }}</span>
+          <span class="agenda__bar" style="background: {{ a.staff_color }}"></span>
+          <span><a class="agenda__who" href="{{ url_for('customers.profile', customer_id=a.customer_id) }}" style="text-decoration:none">{{ a.first_name }} {{ a.last_name }}</a><br><span class="agenda__what">{{ a.service_name }} · {{ a.staff_name }}</span></span>
+          <span class="status status--{{ a.status }}">{{ STATUS_LABELS[a.status] }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="muted" style="margin:0">Bugün için randevu bulunmuyor.</p>{% endif %}
+    </div>
+  </article>
+
+  {% if current_user.role != 'specialist' %}
+  <article class="card" id="bildirimler">
+    <div class="card__head"><div class="card__title">Bildirimler</div></div>
+    <div class="card__body">
+      {% if d.unread_notifications %}
+      <ul class="notice-list">
+        {% for nt in d.unread_notifications %}
+          <li><strong>{{ nt.title }}</strong>{% if nt.body %}<br><span class="muted small">{{ nt.body }}</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="muted" style="margin:0">Okunmamış bildirim yok.</p>{% endif %}
+    </div>
+  </article>
+  {% endif %}
+</div>
+{% endblock %}

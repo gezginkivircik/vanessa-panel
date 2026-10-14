@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import icon, wordmark %}
+{% block title %}Vanessa Güzellik Merkezi · İskenderun{% endblock %}
+{% block meta %}<meta name="description" content="Vanessa Güzellik Merkezi — İskenderun'da lazer epilasyon, cilt bakımı, hydrafacial ve daha fazlası.">{% endblock %}
+{% block body %}
+<div class="pub">
+  <header class="pub__nav">
+    {{ wordmark(logo_path, '/') }}
+    <a class="btn btn--sm btn--ghost" href="{{ url_for('auth.login') }}">Personel Girişi</a>
+  </header>
+  <section class="pub__hero">
+    <div>
+      <h1>Vanessa<br>Güzellik Merkezi</h1>
+      <p>İskenderun'da size özel, özenli ve profesyonel güzellik deneyimi.</p>
+      <div class="pub__cta">
+        <a class="btn btn--primary" href="tel:{{ BRAND.phone_e164 }}">{{ icon('phone') }} Randevu Al · {{ BRAND.phone_display }}</a>
+        <a class="btn" href="https://wa.me/{{ BRAND.phone_e164|replace('+','') }}" rel="noopener" target="_blank">{{ icon('whatsapp') }} WhatsApp</a>
+      </div>
+      <p class="small muted" style="margin-top:22px">Online randevu çok yakında.</p>
+    </div>
+  </section>
+  <footer class="pub__foot">
+    {{ BRAND.address }} · <a href="tel:{{ BRAND.phone_e164 }}">{{ BRAND.phone_display }}</a>
+  </footer>
+</div>
+{% endblock %}

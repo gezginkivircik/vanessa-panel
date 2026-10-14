@@ -1,0 +1,53 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Yeni Müşteri{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field__error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow"><a href="{{ url_for('customers.index') }}">Müşteriler</a></div><h1>Yeni Müşteri</h1></div></div>
+
+<form class="card form-card" method="post" novalidate>
+  <div class="card__body">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <div class="field {{ 'field--error' if errors.get('full_name') }}">
+      <label for="full_name">Ad Soyad</label>
+      <input class="input" id="full_name" name="full_name" value="{{ form.full_name or '' }}" required autocomplete="off"
+             autocapitalize="words" maxlength="160" {% if not form.full_name %}autofocus{% endif %}>
+      {{ err('full_name') }}
+    </div>
+    <div class="field {{ 'field--error' if errors.get('phone') }}">
+      <label for="phone">Telefon</label>
+      <input class="input" id="phone" name="phone" type="tel" inputmode="tel" value="{{ form.phone or '' }}" required
+             placeholder="05XX XXX XX XX" maxlength="20" {% if form.full_name and not form.phone %}autofocus{% endif %}>
+      {{ err('phone') }}
+      {% if extra.duplicate_id %}<a class="small" href="{{ url_for('customers.profile', customer_id=extra.duplicate_id) }}">Mevcut kaydı aç →</a>{% endif %}
+    </div>
+    <div class="field {{ 'field--error' if errors.get('birth_date') }}">
+      <label for="birth_date">Doğum tarihi <span class="muted">(opsiyonel)</span></label>
+      <input class="input" id="birth_date" name="birth_date" type="date" value="{{ form.birth_date or '' }}">
+      {{ err('birth_date') }}
+    </div>
+    <div class="field">
+      <label for="note">Not <span class="muted">(dahili, müşteriye görünmez)</span></label>
+      <textarea class="input" id="note" name="note" rows="2" maxlength="2000">{{ form.note or '' }}</textarea>
+    </div>
+
+    <fieldset style="border:0;padding:0;margin:4px 0 8px">
+      <legend class="small" style="font-weight:600;color:var(--ink-2);margin-bottom:2px">İletişim izinleri (KVKK)</legend>
+      <label class="check"><input type="checkbox" name="consent_service" value="1" {% if form.consent_service %}checked{% endif %}>
+        <span>Randevu hatırlatma ve hizmet bildirimleri WhatsApp ile gönderilebilir.</span></label>
+      <label class="check"><input type="checkbox" name="consent_marketing" value="1" {% if form.consent_marketing %}checked{% endif %}>
+        <span>Kampanya ve pazarlama mesajları WhatsApp ile gönderilebilir. <span class="muted">Yalnızca müşteri açıkça onay verdiyse işaretleyin.</span></span></label>
+      <div class="field" style="margin-top:6px">
+        <label for="consent_source">İzin nasıl alındı?</label>
+        <select class="input" id="consent_source" name="consent_source">
+          {% for k, l in SOURCES.items() if k != 'whatsapp_reply' %}<option value="{{ k }}" {% if form.consent_source == k %}selected{% endif %}>{{ l }}</option>{% endfor %}
+        </select>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <a class="btn btn--ghost" href="{{ url_for('customers.index') }}">Vazgeç</a>
+      <button class="btn btn--primary" type="submit">Kaydet</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

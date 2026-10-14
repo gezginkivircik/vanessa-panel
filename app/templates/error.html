@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import wordmark %}
+{% block title %}{{ title }} · Vanessa{% endblock %}
+{% block body %}
+<main class="auth__main" style="min-height:100dvh">
+  <div class="auth__box" style="text-align:center">
+    <div style="margin-bottom:28px">{{ wordmark(logo_path, '/') }}</div>
+    <div class="display" style="font-size:64px;line-height:1">{{ code }}</div>
+    <h1 style="font-size:20px;margin:12px 0 8px">{{ title }}</h1>
+    {% if description and code != 404 %}<p class="muted">{{ description }}</p>{% endif %}
+    <a class="btn" href="{{ url_for('panel.dashboard') if current_user else '/' }}" style="margin-top:12px">Ana sayfaya dön</a>
+  </div>
+</main>
+{% endblock %}

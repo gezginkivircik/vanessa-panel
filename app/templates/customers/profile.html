@@ -1,0 +1,202 @@
+{% extends "panel/layout.html" %}
+{% from "partials/icons.html" import icon %}
+{% block page_title %}{{ c.first_name }} {{ c.last_name }}{% endblock %}
+{% block content %}
+{% set s = p.stats %}
+<div class="profile-head">
+  <span class="avatar avatar--lg" aria-hidden="true">{{ c.first_name[:1] }}{{ c.last_name[:1] }}</span>
+  <div style="flex:1;min-width:200px">
+    <div class="eyebrow small muted" style="letter-spacing:.14em;text-transform:uppercase"><a href="{{ url_for('customers.index') }}">Müşteriler</a></div>
+    <h1>{{ c.first_name }} {{ c.last_name }}</h1>
+    <div class="profile-head__meta">{{ phone_display(c.phone) }}{% if c.birth_date %} · Doğum {{ c.birth_date|date }}{% endif %} · Kayıt {{ c.created_at|date }}</div>
+  </div>
+</div>
+
+{% if just_created %}
+<div class="alert alert--success">Müşteri kaydedildi. Online/panel randevu oluşturma Faz 4'te bu ekrana eklenecek.</div>
+{% endif %}
+
+<div class="profile-actions">
+  {% if can_wa(current_user) %}
+    <a class="btn btn--wa" href="{{ wa_link(c.phone) }}" target="_blank" rel="noopener">{{ icon('whatsapp') }} WhatsApp'tan Yaz</a>
+    <a class="btn" href="tel:{{ c.phone }}">{{ icon('phone') }} Ara</a>
+  {% endif %}
+  {% if can('customers.edit') %}<a class="btn" href="{{ url_for('customers.edit', customer_id=c.id) }}">{{ icon('edit') }} Düzenle</a>{% endif %}
+  <span class="btn" aria-disabled="true" title="Faz 4">+ Randevu Oluştur <span class="small muted">· Faz 4</span></span>
+</div>
+
+<dl class="kv">
+  <div><dt>Son ziyaret</dt><dd>{{ s.last_visit|date if s.last_visit else '—' }}<small>{{ s.last_service or '' }}</small></dd></div>
+  <div><dt>Sonraki randevu</dt><dd>{% if s.next %}{{ s.next.starts_at|date }} {{ s.next.starts_at|time }}<small>{{ s.next.service_name }}</small>{% else %}—{% endif %}</dd></div>
+  <div><dt>Toplam ziyaret</dt><dd>{{ s.total_visits }}<small>{% if s.no_show %}<span style="color:var(--st-no_show)">{{ s.no_show }} kez gelmedi</span>{% elif s.cancelled %}{{ s.cancelled }} iptal{% else %}&nbsp;{% endif %}</small></dd></div>
+  {% if p.finance %}
+  <div><dt>Toplam harcama</dt><dd>{{ s.total_spent|money }}<small>{% if s.balance %}<span style="color:var(--st-cancelled)">Kalan borç {{ s.balance|money }}</span>{% else %}&nbsp;{% endif %}</small></dd></div>
+  {% else %}
+  <div><dt>Paketler</dt><dd>{{ p.packages|length }}<small>&nbsp;</small></dd></div>
+  {% endif %}
+</dl>
+
+{% set tabs = [('ozet','Özet', none), ('randevular','Randevular', p.appointments|length), ('seanslar','Seanslar', p.packages|length)] %}
+{% if p.finance %}{% set tabs = tabs + [('odemeler','Ödemeler', p.payments|length)] %}{% endif %}
+{% set tabs = tabs + [('mesajlar','Mesajlar', p.messages|length), ('notlar','Notlar', p.notes|length), ('izinler','İzinler', none)] %}
+<nav class="tabs" aria-label="Müşteri bölümleri">
+  {% for key, label, cnt in tabs %}
+    <a href="{{ url_for('customers.profile', customer_id=c.id, sekme=key) }}" {% if tab == key %}aria-current="page"{% endif %}>{{ label }}{% if cnt %}<span class="count">{{ cnt }}</span>{% endif %}</a>
+  {% endfor %}
+</nav>
+
+{% if tab == 'ozet' %}
+  {% set pinned = p.notes|selectattr('is_pinned')|list %}
+  {% for n in pinned %}<div class="alert alert--info">📌 {{ n.body }} <span class="small">— {{ n.author or 'Sistem' }}</span></div>{% endfor %}
+  {% for pk in p.packages if pk.status == 'active' %}
+    {% set a = pk.areas[0] if pk.areas else none %}
+    {% if a %}
+    <div class="card pkg">
+      <div class="pkg__head"><div class="pkg__title">{{ pk.name }}</div><a class="small" href="{{ url_for('customers.profile', customer_id=c.id, sekme='seanslar') }}">Detay →</a></div>
+      <div class="pkg__nums"><span>Tamamlanan <strong>{{ a.done }}</strong></span><span>Kalan <strong>{{ a.remaining }}</strong></span><span>Toplam <strong>{{ a.total_sessions }}</strong></span></div>
+      <div class="progress"><span style="width: {{ (a.done / a.total_sessions * 100)|round(1) }}%"></span></div>
+    </div>
+    {% endif %}
+  {% endfor %}
+  <div class="card"><div class="card__head"><div class="card__title">Zaman Çizelgesi</div></div>
+    <div class="card__body">
+      <ul class="timeline">
+      {% for e in p.timeline %}
+        <li>
+          <span class="timeline__dot timeline__dot--{{ e.kind }} {% if e.status %}timeline__dot--{{ e.status }}{% endif %}"></span>
+          <div class="timeline__date">{{ e.at|datetime }}</div>
+          <div class="timeline__title">{{ e.title }}{% if e.amount %} · <strong>{{ e.amount|money }}</strong>{% endif %}</div>
+          {% if e.kind == 'appointment' %}<div class="timeline__detail">Randevu tarihi: {{ e.appt_at|datetime }}</div>
+          {% elif e.detail %}<div class="timeline__detail">{{ e.detail }}</div>{% endif %}
+        </li>
+      {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+{% elif tab == 'randevular' %}
+  <div class="card"><div class="card__body" style="padding:6px 18px">
+  {% if p.appointments %}
+    <ul class="agenda">
+    {% for a in p.appointments %}
+      <li class="{{ 'is-dim' if a.status in ['cancelled'] }}">
+        <span class="agenda__time" style="font-size:13px">{{ a.starts_at|date }}<br><span class="muted">{{ a.starts_at|time }}</span></span>
+        <span class="agenda__bar" style="background: {{ a.staff_color }}"></span>
+        <span><span class="agenda__who">{{ a.service_name }}</span><br><span class="agenda__what">{{ a.staff_name }}{% if a.price_kurus is not none %} · {{ a.price_kurus|money }}{% endif %}{% if a.source == 'online' %} · online{% endif %}</span></span>
+        <span class="status status--{{ a.status }}">{{ STATUS_LABELS[a.status] }}</span>
+      </li>
+    {% endfor %}
+    </ul>
+  {% else %}<p class="muted">Henüz randevu yok.</p>{% endif %}
+  </div></div>
+
+{% elif tab == 'seanslar' %}
+  {% for pk in p.packages %}
+    <div class="card pkg">
+      <div class="pkg__head">
+        <div><div class="pkg__title">{{ pk.name }}</div><div class="small muted">{{ pk.service_name }} · Alım {{ pk.purchased_at|date }}</div></div>
+        <span class="status status--{{ 'confirmed' if pk.status == 'active' else 'completed' }}">{{ {'active':'Aktif','completed':'Paket tamamlandı','cancelled':'İptal','frozen':'Donduruldu'}[pk.status] }}</span>
+      </div>
+      {% for ar in pk.areas %}
+      <div class="pkg__area">
+        <div style="display:flex;justify-content:space-between;gap:8px"><strong>{{ ar.area_name }}</strong><span class="small muted">{{ ar.done }} / {{ ar.total_sessions }}</span></div>
+        <div class="pkg__nums"><span>Tamamlanan <strong>{{ ar.done }}</strong></span><span>Kalan <strong>{{ ar.remaining }}</strong></span></div>
+        <div class="progress"><span style="width: {{ (ar.done / ar.total_sessions * 100)|round(1) }}%"></span></div>
+        <div class="sessions">
+          {% for sl in ar.slots %}
+            {% set done = sl.s and sl.s.status == 'completed' %}
+            <div class="session {{ 'is-done' if done }}" title="{{ (sl.s.performed_at|date ~ ' — ' ~ (sl.s.notes or '')) if done else 'Planlanmadı' }}">
+              <b>{{ sl.n }}.</b>{% if done %}✓ {{ (sl.s.performed_at|date)[:5] }}{% else %}○{% endif %}<span class="sr-only"> seans{{ ' tamamlandı' if done }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card"><div class="card__body"><p class="muted" style="margin:0">Paket kaydı yok. Paket satışı ve seans işaretleme Faz 5'te eklenecek.</p></div></div>
+  {% endfor %}
+
+{% elif tab == 'odemeler' and p.finance %}
+  {% for pay in p.payments %}
+    <div class="card pkg">
+      <div class="pkg__head">
+        <div><div class="pkg__title">{{ pay.description }}</div><div class="small muted">{{ pay.created_at|date }}</div></div>
+        <span class="status status--{{ {'paid':'confirmed','partial':'pending','unpaid':'cancelled'}[pay.status] }}">{{ {'paid':'Ödendi','partial':'Kısmi ödendi','unpaid':'Ödenmedi'}[pay.status] }}</span>
+      </div>
+      <div class="pkg__nums"><span>Toplam <strong>{{ pay.total_kurus|money }}</strong></span><span>Ödenen <strong>{{ pay.paid_kurus|money }}</strong></span><span>Kalan <strong>{{ pay.remaining|money }}</strong></span></div>
+      {% if pay.transactions %}
+      <div class="pkg__area small">
+        {% for t in pay.transactions %}<div style="display:flex;justify-content:space-between;padding:3px 0"><span>{{ t.paid_at|date }} · {{ METHOD_LABELS[t.method] }}</span><strong class="tabular">{{ t.amount_kurus|money }}</strong></div>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="card"><div class="card__body"><p class="muted" style="margin:0">Ödeme kaydı yok.</p></div></div>
+  {% endfor %}
+  <p class="small muted">Tahsilat girme ekranı Faz 7'de eklenecek.</p>
+
+{% elif tab == 'mesajlar' %}
+  <div class="card"><div class="card__body">
+  {% if p.messages %}
+    <ul class="notice-list">{% for m in p.messages %}<li><span class="small muted">{{ m.created_at|datetime }}</span><br>{{ m.message_type }} · <strong>{{ MSG_STATUS.get(m.status, m.status) }}</strong>{% if m.body %}<br><span class="muted small">{{ m.body }}</span>{% endif %}</li>{% endfor %}</ul>
+  {% else %}<p class="muted" style="margin:0">Henüz otomatik mesaj gönderilmedi. Otomatik WhatsApp mesajları Faz 8–10'da devreye girecek; gönderilen her mesaj ve müşteri cevabı burada listelenecek.</p>{% endif %}
+  </div></div>
+
+{% elif tab == 'notlar' %}
+  {% if can('notes.write') %}
+  <form class="card" method="post" action="{{ url_for('customers.note_add', customer_id=c.id) }}" style="margin-bottom:14px">
+    <div class="card__body">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      <label class="sr-only" for="nbody">Yeni not</label>
+      <textarea class="input" id="nbody" name="body" rows="3" maxlength="2000" required placeholder="Dahili not yazın (müşteriye gösterilmez)…"></textarea>
+      <div class="form-actions"><button class="btn btn--primary btn--sm" type="submit">Notu Kaydet</button></div>
+    </div>
+  </form>
+  {% endif %}
+  <div class="card">
+  {% for n in p.notes %}
+    <div class="note {{ 'is-pinned' if n.is_pinned }}">
+      <div class="note__body">{{ n.body }}</div>
+      <div class="note__meta">
+        <span>{{ n.author or 'Sistem' }} · {{ n.created_at|datetime }}{% if n.is_pinned %} · 📌 sabit{% endif %}</span>
+        {% if can('notes.write') %}<span>
+          <form method="post" action="{{ url_for('customers.note_action', customer_id=c.id, note_id=n.id, action='sabitle') }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="link-btn" type="submit">{{ 'Sabitlemeyi kaldır' if n.is_pinned else 'Sabitle' }}</button></form>
+          {% if n.author_user_id == current_user.id or current_user.role == 'admin' %}
+          <form method="post" action="{{ url_for('customers.note_action', customer_id=c.id, note_id=n.id, action='sil') }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="link-btn" type="submit" data-confirm="Not silinsin mi?">Sil</button></form>
+          {% endif %}
+        </span>{% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="card__body"><p class="muted" style="margin:0">Henüz not yok.</p></div>
+  {% endfor %}
+  </div>
+
+{% elif tab == 'izinler' %}
+  <div class="card" style="margin-bottom:14px">
+    <div class="card__head"><div class="card__title">Geçerli İletişim İzinleri</div></div>
+    <div class="card__body" style="padding:8px 0 4px">
+    {% for ch in ['whatsapp','sms'] %}{% for cat, catlabel in CATEGORIES.items() %}
+      {% set k = p.consents.get((ch, cat)) %}
+      <div class="consent-row">
+        <div><strong>{{ CHANNELS[ch] }}</strong> · {{ catlabel }}
+          {% if k %}<br><span class="small muted">{{ SOURCES.get(k.source, k.source) }} · {{ k.created_at|datetime }}</span>{% endif %}</div>
+        <div style="display:flex;gap:10px;align-items:center">
+          {% if k and k.granted %}<span class="yes">✓ İzin var</span>{% else %}<span class="no">İzin yok</span>{% endif %}
+          {% if can('customers.edit') %}
+          <form method="post" action="{{ url_for('customers.consent', customer_id=c.id) }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+            <input type="hidden" name="channel" value="{{ ch }}"><input type="hidden" name="category" value="{{ cat }}">
+            <input type="hidden" name="granted" value="{{ '0' if k and k.granted else '1' }}"><input type="hidden" name="source" value="panel">
+            <button class="btn btn--sm" type="submit" {% if k and k.granted %}data-confirm="İzin geri alınsın mı?"{% endif %}>{{ 'Geri al' if k and k.granted else 'İzin ver' }}</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}{% endfor %}
+    </div>
+  </div>
+  <p class="small muted">Randevu/hizmet bildirimleri ile kampanya mesajları ayrı tutulur. Kampanyalar yalnızca "Kampanya ve pazarlama" izni olan müşterilere gönderilir. Her değişiklik tarihçesiyle saklanır.</p>
+{% endif %}
+{% endblock %}

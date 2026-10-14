@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import wordmark %}
+{% block title %}Giriş · Vanessa Yönetim Paneli{% endblock %}
+{% block body %}
+<div class="auth">
+  <aside class="auth__aside">
+    {{ wordmark(logo_path, '/') }}
+    <p class="auth__quote">Güzelliğin düzenli hâli.</p>
+    <div class="auth__meta">{{ BRAND.address }} · {{ BRAND.phone_display }}</div>
+  </aside>
+  <main class="auth__main">
+    <div class="auth__box">
+      <div class="auth__brand">{{ wordmark(logo_path, '/') }}</div>
+      <h1 class="auth__title">Yönetim Paneli</h1>
+      <p class="auth__lead">Devam etmek için giriş yapın.</p>
+
+      {% if error %}<div class="alert alert--error" role="alert">{{ error }}</div>{% endif %}
+
+      <form method="post" action="{{ url_for('auth.login') }}" autocomplete="on" novalidate>
+        <input type="hidden" name="_csrf" value="{{ pre_csrf }}">
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="field">
+          <label for="username">Kullanıcı adı</label>
+          <input class="input" id="username" name="username" value="{{ username }}" autocomplete="username"
+                 autocapitalize="none" spellcheck="false" required autofocus maxlength="60">
+        </div>
+        <div class="field">
+          <label for="password">Şifre</label>
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required maxlength="200">
+        </div>
+        <button class="btn btn--primary btn--block" type="submit" style="margin-top:8px">Giriş Yap</button>
+      </form>
+      <p class="auth__foot">Şifrenizi unuttuysanız yöneticinizden sıfırlamasını isteyin.</p>
+    </div>
+  </main>
+</div>
+{% endblock %}

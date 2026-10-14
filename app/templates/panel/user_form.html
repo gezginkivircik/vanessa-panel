@@ -1,0 +1,50 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}{{ 'Yeni Kullanıcı' if is_new else 'Kullanıcı Düzenle' }}{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field__error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow"><a href="{{ url_for('panel.users') }}">Kullanıcılar</a></div>
+  <h1>{{ 'Yeni Kullanıcı' if is_new else form.full_name }}</h1></div>
+</div>
+{% if errors.get('_') %}<div class="alert alert--error">{{ errors['_'] }}</div>{% endif %}
+<form class="card form-card" method="post" novalidate>
+  <div class="card__body">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <div class="field {{ 'field--error' if errors.get('full_name') }}"><label for="full_name">Ad Soyad</label>
+      <input class="input" id="full_name" name="full_name" value="{{ form.full_name or '' }}" required maxlength="120">{{ err('full_name') }}</div>
+    <div class="field {{ 'field--error' if errors.get('username') }}"><label for="username">Kullanıcı adı</label>
+      <input class="input" id="username" name="username" value="{{ form.username or '' }}" required autocapitalize="none" spellcheck="false" maxlength="30">
+      <span class="field__hint">Küçük harf, rakam, nokta, tire. Örn: resepsiyon2</span>{{ err('username') }}</div>
+    <div class="field {{ 'field--error' if errors.get('email') }}"><label for="email">E-posta (opsiyonel)</label>
+      <input class="input" id="email" name="email" type="email" value="{{ form.email or '' }}" maxlength="160">{{ err('email') }}</div>
+    <div class="field {{ 'field--error' if errors.get('role') }}"><label for="role">Rol</label>
+      <select class="input" id="role" name="role" required>
+        <option value="">Seçin…</option>
+        {% for key, label in ROLE_LABELS.items() %}<option value="{{ key }}" {% if form.role == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      <span class="field__hint">Yönetici: her şey · Resepsiyon: müşteri, randevu, tahsilat · Uzman: yalnızca kendi randevuları</span>{{ err('role') }}</div>
+    <div class="field {{ 'field--error' if errors.get('staff_id') }}"><label for="staff_id">Bağlı personel</label>
+      <select class="input" id="staff_id" name="staff_id">
+        <option value="">— Yok —</option>
+        {% for s in staff %}<option value="{{ s.id }}" {% if form.staff_id|string == s.id|string %}selected{% endif %}>{{ s.full_name }}</option>{% endfor %}
+      </select>{{ err('staff_id') }}</div>
+    <div class="form-actions">
+      <a class="btn btn--ghost" href="{{ url_for('panel.users') }}">Vazgeç</a>
+      <button class="btn btn--primary" type="submit">{{ 'Oluştur' if is_new else 'Kaydet' }}</button>
+    </div>
+  </div>
+</form>
+
+{% if not is_new %}
+<div class="card form-card" style="margin-top:14px">
+  <div class="card__head"><div class="card__title">Güvenlik</div></div>
+  <div class="card__body">
+    <p class="small muted" style="margin-top:0">Açık oturum: {{ sessions|length }}{% if sessions %} · son görülme {{ sessions[0].last_seen_at|datetime }}{% endif %}</p>
+    <form method="post" action="{{ url_for('panel.user_reset_password', user_id=user.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      <button class="btn btn--danger" type="submit" data-confirm="Şifre sıfırlansın mı? Kullanıcının bütün oturumları kapanacak.">Şifreyi Sıfırla</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

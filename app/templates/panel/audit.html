@@ -1,0 +1,50 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}İşlem Kayıtları{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Yönetim</div><h1>İşlem Kayıtları</h1></div>
+  <form method="get" style="display:flex;gap:8px">
+    <select class="input" name="islem" aria-label="İşlem türü" style="min-width:180px">
+      <option value="">Tüm işlemler</option>
+      {% for k, l in [('auth','Giriş / çıkış'),('user','Kullanıcı'),('customer','Müşteri'),('appointment','Randevu'),('payment','Ödeme')] %}
+        <option value="{{ k }}" {% if action == k %}selected{% endif %}>{{ l }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn" type="submit">Filtrele</button>
+  </form>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table class="table table--stack">
+      <thead><tr><th>Zaman</th><th>Kim</th><th>İşlem</th><th>Açıklama</th><th>Değişiklik</th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr>
+          <td data-label="Zaman" class="tabular">{{ r.created_at|datetime }}</td>
+          <td data-label="Kim">{{ r.actor_label }}</td>
+          <td data-label="İşlem"><span class="tag">{{ ACTION_LABELS.get(r.action, r.action) }}</span></td>
+          <td data-label="Açıklama">{{ r.summary }}</td>
+          <td data-label="Değişiklik">
+            {% if r.before or r.after %}
+            <details class="json"><summary>Göster</summary>
+              {% if r.before %}<pre>Önce: {{ r.before|tojson(indent=1) }}</pre>{% endif %}
+              {% if r.after %}<pre>Sonra: {{ r.after|tojson(indent=1) }}</pre>{% endif %}
+            </details>
+            {% else %}<span class="muted">—</span>{% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="muted">Kayıt yok.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% if pages > 1 %}
+<nav class="pager" aria-label="Sayfalar">
+  {% if page > 1 %}<a class="btn btn--sm" href="?sayfa={{ page - 1 }}&islem={{ action }}">Önceki</a>{% endif %}
+  <span class="small muted" style="align-self:center">{{ page }} / {{ pages }}</span>
+  {% if page < pages %}<a class="btn btn--sm" href="?sayfa={{ page + 1 }}&islem={{ action }}">Sonraki</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

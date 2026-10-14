@@ -1,0 +1,39 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Müşteri Düzenle{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field__error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow"><a href="{{ url_for('customers.profile', customer_id=c.id) }}">{{ c.first_name }} {{ c.last_name }}</a></div><h1>Bilgileri Düzenle</h1></div></div>
+<form class="card form-card" method="post" novalidate>
+  <div class="card__body">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <div class="form-grid form-grid--2">
+      <div class="field {{ 'field--error' if errors.get('first_name') }}"><label for="first_name">Ad</label>
+        <input class="input" id="first_name" name="first_name" value="{{ form.first_name or '' }}" required maxlength="80">{{ err('first_name') }}</div>
+      <div class="field {{ 'field--error' if errors.get('last_name') }}"><label for="last_name">Soyad</label>
+        <input class="input" id="last_name" name="last_name" value="{{ form.last_name or '' }}" required maxlength="80">{{ err('last_name') }}</div>
+    </div>
+    <div class="field {{ 'field--error' if errors.get('phone') }}"><label for="phone">Telefon</label>
+      <input class="input" id="phone" name="phone" type="tel" inputmode="tel" value="{{ phone_display(form.phone) if form.phone and form.phone.startswith('+') else (form.phone or '') }}" required maxlength="20">{{ err('phone') }}</div>
+    <div class="form-grid form-grid--2">
+      <div class="field {{ 'field--error' if errors.get('birth_date') }}"><label for="birth_date">Doğum tarihi</label>
+        <input class="input" id="birth_date" name="birth_date" type="date" value="{{ form.birth_date or '' }}">{{ err('birth_date') }}</div>
+      <div class="field {{ 'field--error' if errors.get('email') }}"><label for="email">E-posta</label>
+        <input class="input" id="email" name="email" type="email" value="{{ form.email or '' }}" maxlength="160">{{ err('email') }}</div>
+    </div>
+    <div class="form-actions">
+      <a class="btn btn--ghost" href="{{ url_for('customers.profile', customer_id=c.id) }}">Vazgeç</a>
+      <button class="btn btn--primary" type="submit">Kaydet</button>
+    </div>
+  </div>
+</form>
+
+{% if can('customers.delete') %}
+<div class="card form-card" style="margin-top:14px"><div class="card__body">
+  <form method="post" action="{{ url_for('customers.delete', customer_id=c.id) }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <p class="small muted" style="margin-top:0">Kayıt silindiğinde listelerden kalkar. Geçmiş randevu ve ödeme kayıtları raporlar için korunur.</p>
+    <button class="btn btn--danger" type="submit" data-confirm="{{ c.first_name }} {{ c.last_name }} kaydı silinsin mi?">Müşteri Kaydını Sil</button>
+  </form>
+</div></div>
+{% endif %}
+{% endblock %}
