@@ -324,15 +324,8 @@ def _on_completed(db: Connection, a: dict, user: dict | None) -> None:
     if rep:
         last = to_local(performed).date()
         due = last + dt.timedelta(days=int(rep))
-        ex = db.one("SELECT id FROM service_followups WHERE customer_id = ? AND service_id = ?",
-                    (a["customer_id"], a["service_id"]))
-        data = {"last_appointment_id": a["id"], "last_done_on": last.isoformat(), "due_on": due.isoformat(),
-                "status": "open", "updated_at": now_iso()}
-        if ex:
-            db.update("service_followups", ex["id"], data)
-        else:
-            db.insert("service_followups", {**data, "customer_id": a["customer_id"], "service_id": a["service_id"],
-                                            "created_at": now_iso()})
+        from .followups import upsert
+        upsert(db, a["customer_id"], a["service_id"], last, due, "repeat", a["id"])
 
 
 # ------------------------------------------------------------------ yeni saat

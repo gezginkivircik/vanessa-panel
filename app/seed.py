@@ -311,4 +311,6 @@ def seed_demo(db: Connection, password: str | None = None) -> dict[str, str]:
         db.insert("notifications", {"user_id": None, "kind": "no_show", "title": "Gizem Öztürk randevusuna gelmedi",
                                     "body": "Kaş Tasarımı randevusu GELMEDİ olarak işaretlendi.",
                                     "customer_id": cust["Gizem Öztürk"], "created_at": now})
+        from .services.followups import rebuild_missing
+        rebuild_missing(db)
     return creds

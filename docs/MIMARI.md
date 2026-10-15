@@ -181,7 +181,7 @@ Mobilde alt sekme çubuğu: **Bugün · Randevular · + (Randevu/Müşteri) · M
 | 3 | Hizmet ve personel yönetimi, çalışma saatleri, mola, izin, görsel, randevu ayarları | ✅ (+14 test) |
 | 4 | Randevu motoru (uygun saat hesaplama, çakışma kontrolü), durumlar, takvim | ✅ (+14 test; Faz 5–6 temeli: seans düşümü ve tekrar tarihi) |
 | 5 | Lazer paket/seans ve bölge takibi | ✅ (paket satışı, bölge bazlı seans işleme, randevuların pakete bağlanması) |
-| 6 | Tekrar periyotları (sonraki işlem tarihi) | ⏳ |
+| 6 | Tekrar periyotları (sonraki işlem tarihi) | ✅ (Takip listesi: zamanı gelen / bu hafta / 30 gün / ertelenen; arama sonucu kaydı, erteleme, paket ilerlemesi, izinli WhatsApp kısayolu; +8 test) |
 | 7 | Ödeme ve tahsilat hareketleri | ✅ (tahsilat, kısmi/tam ödeme, iade ve iptal yalnız yönetici, randevu tamamlanınca borç kaydı; +12 test) |
 | 8 | WhatsApp provider katmanı (Mock + Meta Cloud API) | ⏳ |
 | 9 | Scheduler + kuyruk + otomatik mesajlar | ⏳ |

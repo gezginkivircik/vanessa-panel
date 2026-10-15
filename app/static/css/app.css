@@ -759,3 +759,24 @@ details.card > summary::-webkit-details-marker { display: none; }
 .about--stack blockquote { max-width: 24ch; }
 .hours td:first-child { padding-right: 18px; }
 .contact__row > div { min-width: 0; flex: 1; }
+
+/* ============================================================ FAZ 6: TAKİP LİSTESİ */
+.seg--scroll { overflow-x: auto; max-width: 100%; }
+.seg__n { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px; border-radius: 999px; background: var(--bg-sunken);
+  font-size: 11.5px; text-align: center; font-variant-numeric: tabular-nums; }
+.seg a[aria-current="true"] .seg__n { background: var(--accent-soft); color: var(--accent-ink); }
+.fu-list { display: grid; gap: 12px; }
+.fu { padding: 18px; display: grid; gap: 12px; }
+.fu__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fu__name { font-weight: 600; font-size: 16px; text-decoration: none; }
+.fu__svc { margin-top: 4px; font-size: 14px; }
+.fu__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.fu__more summary { cursor: pointer; font-size: 13.5px; color: var(--accent-ink); }
+.fu__form { margin-top: 10px; }
+.fu__row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.fu__row .input { min-height: 38px; padding: 6px 10px; font-size: 14px; width: auto; flex: 1 1 140px; }
+@media (min-width: 900px) { .fu { grid-template-columns: 1fr auto; align-items: start; } .fu__more { grid-column: 1 / -1; } }
+.stat--link { text-decoration: none; transition: border-color .12s; }
+.stat--link:hover { border-color: var(--accent); }
+.seg--scroll { display: flex; width: max-content; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.seg--scroll a { white-space: nowrap; flex: none; }

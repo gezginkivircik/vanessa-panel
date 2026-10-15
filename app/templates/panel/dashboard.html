@@ -48,6 +48,7 @@
 </div>
 
 <section class="stats" aria-label="Özet">
+  {% if d.followup_due is defined %}<a class="card stat stat--link" href="{{ url_for('followups.index') }}"><div class="stat__label">Takip</div><div class="stat__value" {% if d.followup_due %}style="color:var(--accent-ink)"{% endif %}>{{ d.followup_due }}</div><div class="stat__hint">zamanı gelen müşteri →</div></a>{% endif %}
   <div class="card stat"><div class="stat__label">Yarın</div><div class="stat__value">{{ d.tomorrow_total }}</div><div class="stat__hint">randevu</div></div>
   <div class="card stat"><div class="stat__label">Bekleyen Onay</div><div class="stat__value">{{ d.pending_confirmations }}</div><div class="stat__hint">yaklaşan</div></div>
   <div class="card stat"><div class="stat__label">Bugün Gelen</div><div class="stat__value">{{ d.arrived_today }}</div><div class="stat__hint">müşteri</div></div>

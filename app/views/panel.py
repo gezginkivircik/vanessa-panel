@@ -27,6 +27,9 @@ def _greeting() -> str:
 @require_permission("dashboard.view")
 def dashboard():
     data = get_dashboard(get_db(), g.user, finance=has_permission(g.user, "dashboard.finance"))
+    if has_permission(g.user, "customers.view_all"):
+        from ..services.followups import due_count
+        data["followup_due"] = due_count(get_db())
     first_name = g.user["full_name"].split(" ")[0]
     return render_template("panel/dashboard.html", d=data, greeting=_greeting(), first_name=first_name,
                            today_label=fmt_long_date(local_today()))

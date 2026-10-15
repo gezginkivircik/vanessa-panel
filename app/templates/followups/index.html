@@ -1,0 +1,70 @@
+{% extends "panel/layout.html" %}
+{% from "partials/icons.html" import icon %}
+{% block page_title %}Takip Listesi{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Müşteri takibi</div><h1>Takip Listesi</h1>
+  <p class="muted small" style="margin:6px 0 0">Bir sonraki seansı ya da bakım zamanı gelen müşteriler. Randevu oluşturulunca listeden kendiliğinden düşer.</p></div></div>
+
+<nav class="seg seg--scroll" aria-label="Takip sekmeleri" style="margin-bottom:16px">
+  {% for k, l in TABS.items() %}<a href="{{ url_for('followups.index', sekme=k) }}" aria-current="{{ 'true' if tab == k else 'false' }}">{{ l }} <span class="seg__n">{{ counts[k] }}</span></a>{% endfor %}
+</nav>
+
+{% if rows %}
+<div class="fu-list">
+  {% for r in rows %}
+  <article class="card fu">
+    <div class="fu__main">
+      <div class="fu__top">
+        <a class="fu__name" href="{{ url_for('customers.profile', customer_id=r.customer_id) }}">{{ r.first_name }} {{ r.last_name }}</a>
+        {% if r.days > 0 %}<span class="status status--cancelled">{{ r.days }} gün geçti</span>
+        {% elif r.days == 0 %}<span class="status status--pending">Bugün</span>
+        {% else %}<span class="status status--confirmed">{{ -r.days }} gün kaldı</span>{% endif %}
+      </div>
+      <div class="fu__svc">{{ r.service_name }}
+        {% if r.reason == 'package' %}<span class="muted">· paket alındı, ilk randevu bekleniyor</span>
+        {% else %}<span class="muted">· son işlem {{ r.last_done_on|date }}</span>{% endif %}</div>
+      {% if r.package %}
+        <div class="small" style="margin-top:8px"><strong>{{ r.package.name }}</strong> · {{ r.package.done }}/{{ r.package.total }} seans · sıradaki <strong>{{ r.package.next }}. seans</strong></div>
+        <div class="progress" style="max-width:320px"><span style="width: {{ (r.package.done / r.package.total * 100)|round(1) }}%"></span></div>
+      {% endif %}
+      {% if r.contact_count %}<div class="small muted" style="margin-top:8px">{{ r.contact_count }} kez arandı · son: {{ RESULTS.get(r.last_contact_result, '') }}{% if r.last_contact_local %} ({{ r.last_contact_at|date }}){% endif %}</div>{% endif %}
+      {% if r.snoozed %}<div class="small muted" style="margin-top:4px">{{ r.snoozed_until|date }} tarihinde tekrar listeye gelecek.</div>{% endif %}
+    </div>
+    <div class="fu__actions">
+      <a class="btn btn--sm" href="tel:{{ r.phone }}">{{ icon('phone') }} {{ r.phone_display }}</a>
+      {% if r.wa_ok and can('messages.send_manual') %}<a class="btn btn--sm btn--wa" href="{{ r.wa_url }}" target="_blank" rel="noopener">{{ icon('whatsapp') }} WhatsApp</a>
+      {% else %}<span class="small muted" title="Müşterinin WhatsApp bilgilendirme izni yok">WhatsApp izni yok</span>{% endif %}
+      <a class="btn btn--sm btn--primary" href="{{ url_for('appointments.new', musteri=r.customer_id, hizmet=r.service_id) }}">{{ icon('calendar') }} Randevu Oluştur</a>
+    </div>
+    <details class="fu__more">
+      <summary>Arama sonucunu kaydet</summary>
+      <form method="post" action="{{ url_for('followups.record', followup_id=r.id) }}" class="fu__form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}"><input type="hidden" name="sekme" value="{{ tab }}">
+        <div class="chips chips--wrap">
+          <label class="chip"><input type="radio" name="result" value="no_answer" checked> Ulaşılamadı</label>
+          <label class="chip"><input type="radio" name="result" value="later"> Sonra aranacak</label>
+          <label class="chip"><input type="radio" name="result" value="declined"> İstemiyor</label>
+        </div>
+        <div class="fu__row">
+          <select class="input" name="days" aria-label="Erteleme süresi">{% for d in SNOOZE_DAYS %}<option value="{{ d }}" {% if d == 7 %}selected{% endif %}>{{ d }} gün sonra</option>{% endfor %}</select>
+          <input class="input" name="note" maxlength="300" placeholder="Not (isteğe bağlı)">
+          <button class="btn btn--sm" type="submit">Kaydet</button>
+        </div>
+        <p class="small muted" style="margin:6px 0 0">“Ulaşılamadı” → yarın tekrar listede. “Sonra aranacak” → seçilen gün kadar ertelenir. “İstemiyor” → listeden çıkar; yeni bir işlem yapılırsa yeniden açılır.</p>
+      </form>
+      {% if tab == 'ertelenen' %}
+      <form method="post" action="{{ url_for('followups.record', followup_id=r.id) }}" style="margin-top:8px">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}"><input type="hidden" name="sekme" value="{{ tab }}"><input type="hidden" name="result" value="reopened">
+        <button class="btn btn--sm btn--ghost" type="submit">Ertelemeyi kaldır</button>
+      </form>
+      {% endif %}
+    </details>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+  <div class="card"><div class="card__body"><p class="muted" style="margin:0">
+    {% if tab == 'gelen' %}Şu an zamanı gelen müşteri yok.{% elif tab == 'ertelenen' %}Ertelenen kayıt yok.{% else %}Bu aralıkta takip edilecek müşteri yok.{% endif %}
+  </p></div></div>
+{% endif %}
+{% endblock %}

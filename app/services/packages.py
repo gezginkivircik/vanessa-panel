@@ -48,6 +48,10 @@ def sell(db: Connection, user: dict, customer_id: int, form: dict) -> int:
         db.execute("""UPDATE appointments SET customer_package_id = ? WHERE customer_id = ? AND service_id = ?
                       AND customer_package_id IS NULL AND is_active_slot = 1 AND starts_at >= ?""",
                    (cp, customer_id, service["id"], now))
+        if not db.scalar("SELECT 1 FROM service_followups WHERE customer_id = ? AND service_id = ? AND status <> 'dismissed'",
+                         (customer_id, service["id"])):
+            from .followups import upsert
+            upsert(db, customer_id, service["id"], local_today(), local_today(), "package")
         c = db.one("SELECT first_name, last_name FROM customers WHERE id = ?", (customer_id,))
         audit("package.sell", "customer", customer_id,
               f"{c['first_name']} {c['last_name']}: {name} satıldı ({', '.join(areas)}) · {pay.fmt(total)}",

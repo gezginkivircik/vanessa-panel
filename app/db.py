@@ -286,7 +286,12 @@ def _backfill_search_name(conn: Connection) -> None:
 
 
 # SQL ile yapılamayan veri dönüşümleri (migration ile aynı transaction'da çalışır)
-MIGRATION_HOOKS = {"002_customer_search.sql": _backfill_search_name}
+def _backfill_followups(conn: Connection) -> None:
+    from .services.followups import rebuild_missing
+    rebuild_missing(conn)
+
+
+MIGRATION_HOOKS = {"002_customer_search.sql": _backfill_search_name, "005_followups.sql": _backfill_followups}
 
 
 def migrate(conn: Connection) -> list[str]:

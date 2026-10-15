@@ -122,6 +122,7 @@ def create_app(overrides: dict | None = None) -> Flask:
     from .views.appointments import bp as appointments_bp
     from .views.catalog import bp as catalog_bp
     from .views.payments import bp as payments_bp
+    from .views.followups import bp as followups_bp
 
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
@@ -130,6 +131,7 @@ def create_app(overrides: dict | None = None) -> Flask:
     app.register_blueprint(appointments_bp)
     app.register_blueprint(catalog_bp)
     app.register_blueprint(payments_bp)
+    app.register_blueprint(followups_bp)
 
     @app.get("/healthz")
     def healthz():
