@@ -15,7 +15,7 @@ ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
         "notes.write",
         "appointments.view", "appointments.view_all", "appointments.manage",
         "sessions.manage",
-        "payments.view", "payments.manage",
+        "payments.view", "payments.manage", "payments.void",
         "services.manage", "staff.manage",
         "messages.view", "messages.send_manual", "templates.manage", "campaigns.manage",
         "reports.view", "export.data",

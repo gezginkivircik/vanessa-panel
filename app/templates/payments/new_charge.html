@@ -1,0 +1,23 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Yeni Ödeme Kaydı{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field__error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow"><a href="{{ url_for('customers.profile', customer_id=c.id, sekme='odemeler') }}">{{ c.first_name }} {{ c.last_name }}</a></div><h1>Yeni Ödeme Kaydı</h1></div></div>
+<form class="card form-card" method="post" novalidate>
+  <div class="card__body">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <div class="field {{ 'field--error' if errors.get('description') }}"><label for="description">Açıklama</label>
+      <input class="input" id="description" name="description" value="{{ form.description or '' }}" maxlength="200" placeholder="Ürün satışı, ek işlem…">{{ err('description') }}</div>
+    <div class="form-grid form-grid--2">
+      <div class="field {{ 'field--error' if errors.get('total') }}"><label for="total">Tutar (TL)</label>
+        <input class="input" id="total" name="total" inputmode="decimal" value="{{ form.total or '' }}">{{ err('total') }}</div>
+      <div class="field {{ 'field--error' if errors.get('discount') }}"><label for="discount">İndirim (TL)</label>
+        <input class="input" id="discount" name="discount" inputmode="decimal" value="{{ form.discount or '' }}">{{ err('discount') }}</div>
+    </div>
+    <label class="check"><input type="checkbox" name="pay_now" value="1" {% if form.pay_now %}checked{% endif %}><span><strong>Şimdi tahsil edildi</strong> (tamamı)</span></label>
+    <div class="chips chips--wrap" style="margin:4px 0 12px">{% for k, l in PAY_METHODS.items() %}<label class="chip"><input type="radio" name="method" value="{{ k }}" {% if form.method == k %}checked{% endif %}> {{ l }}</label>{% endfor %}</div>
+    {% if errors.get('amount') %}<div class="alert alert--error">{{ errors['amount'] }}</div>{% endif %}
+    <div class="form-actions"><a class="btn btn--ghost" href="{{ url_for('customers.profile', customer_id=c.id, sekme='odemeler') }}">Vazgeç</a><button class="btn btn--primary" type="submit">Kaydet</button></div>
+  </div>
+</form>
+{% endblock %}

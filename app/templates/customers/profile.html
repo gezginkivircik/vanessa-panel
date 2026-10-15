@@ -94,6 +94,7 @@
   </div></div>
 
 {% elif tab == 'seanslar' %}
+  {% if can('payments.manage') %}<div class="tab-actions"><a class="btn btn--primary btn--sm" href="{{ url_for('payments.sell_package', customer_id=c.id) }}">+ Paket Sat</a></div>{% endif %}
   {% for pk in p.packages %}
     <div class="card pkg">
       <div class="pkg__head">
@@ -113,14 +114,25 @@
             </div>
           {% endfor %}
         </div>
+        {% if pk.status == 'active' and ar.remaining > 0 and can('sessions.manage') %}
+        <details class="small" style="margin-top:8px"><summary style="cursor:pointer;color:var(--accent)">Randevusuz seans işle</summary>
+          <form class="session-form" method="post" action="{{ url_for('payments.record_session', customer_id=c.id, area_id=ar.id) }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+            <input class="input" type="date" name="performed_on" aria-label="Seans tarihi">
+            <input class="input" name="notes" placeholder="Not (atış, ayar…)" maxlength="300" aria-label="Not">
+            <button class="btn btn--sm" type="submit">{{ ar.done + 1 }}. seansı işle</button>
+          </form>
+        </details>
+        {% endif %}
       </div>
       {% endfor %}
     </div>
   {% else %}
-    <div class="card"><div class="card__body"><p class="muted" style="margin:0">Paket kaydı yok. Paket satışı ve seans işaretleme Faz 5'te eklenecek.</p></div></div>
+    <div class="card"><div class="card__body"><p class="muted" style="margin:0">Paket kaydı yok.{% if can('payments.manage') %} Yukarıdan “Paket Sat” ile ekleyebilirsiniz.{% endif %} Randevu tamamlandıkça seanslar otomatik işlenir.</p></div></div>
   {% endfor %}
 
 {% elif tab == 'odemeler' and p.finance %}
+  {% if can('payments.manage') %}<div class="tab-actions"><a class="btn btn--primary btn--sm" href="{{ url_for('payments.new_charge', customer_id=c.id) }}">+ Yeni Ödeme Kaydı</a><a class="btn btn--sm" href="{{ url_for('payments.sell_package', customer_id=c.id) }}">Paket Sat</a></div>{% endif %}
   {% for pay in p.payments %}
     <div class="card pkg">
       <div class="pkg__head">
@@ -128,6 +140,7 @@
         <span class="status status--{{ {'paid':'confirmed','partial':'pending','unpaid':'cancelled'}[pay.status] }}">{{ {'paid':'Ödendi','partial':'Kısmi ödendi','unpaid':'Ödenmedi'}[pay.status] }}</span>
       </div>
       <div class="pkg__nums"><span>Toplam <strong>{{ pay.total_kurus|money }}</strong></span><span>Ödenen <strong>{{ pay.paid_kurus|money }}</strong></span><span>Kalan <strong>{{ pay.remaining|money }}</strong></span></div>
+      <div style="margin-top:12px"><a class="btn btn--sm {{ 'btn--primary' if pay.remaining > 0 }}" href="{{ url_for('payments.detail', payment_id=pay.id) }}">{{ 'Tahsilat Al' if pay.remaining > 0 and can('payments.manage') else 'Detay' }}</a></div>
       {% if pay.transactions %}
       <div class="pkg__area small">
         {% for t in pay.transactions %}<div style="display:flex;justify-content:space-between;padding:3px 0"><span>{{ t.paid_at|date }} · {{ METHOD_LABELS[t.method] }}</span><strong class="tabular">{{ t.amount_kurus|money }}</strong></div>{% endfor %}
@@ -137,7 +150,6 @@
   {% else %}
     <div class="card"><div class="card__body"><p class="muted" style="margin:0">Ödeme kaydı yok.</p></div></div>
   {% endfor %}
-  <p class="small muted">Tahsilat girme ekranı Faz 7'de eklenecek.</p>
 
 {% elif tab == 'mesajlar' %}
   <div class="card"><div class="card__body">

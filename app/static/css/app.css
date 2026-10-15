@@ -602,3 +602,11 @@ details.card > summary::-webkit-details-marker { display: none; }
 .grid-2 > * { min-width: 0; }
 .hours__row { grid-template-columns: minmax(84px, 1fr) minmax(0, 120px) 8px minmax(0, 120px); }
 .hours__row .input { padding: 6px 4px; font-size: 14px; }
+
+/* ============================================================ FAZ 5+7: ÖDEME */
+.tx { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.tx:first-child { border-top: 0; padding-top: 0; }
+.card__head .seg a { padding: 6px 12px; font-size: 12.5px; }
+.tab-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.session-form { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.session-form .input { min-height: 38px; padding: 6px 10px; font-size: 14px; width: auto; flex: 1 1 140px; }

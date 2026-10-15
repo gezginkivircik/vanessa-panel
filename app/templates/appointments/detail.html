@@ -36,6 +36,13 @@
       </div>
     </div>
 
+    {% if payment %}
+    <div class="card" style="margin-bottom:14px"><div class="card__body" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div><div class="small muted">Ödeme</div><strong>{{ PAY_STATUS[payment.status] }}</strong>{% if payment.remaining > 0 %} · <span style="color:var(--st-cancelled)">Kalan {{ payment.remaining|money }}</span>{% endif %}</div>
+      <a class="btn btn--sm {{ 'btn--primary' if payment.remaining > 0 }}" href="{{ url_for('payments.detail', payment_id=payment.id) }}">{{ 'Tahsilat Al' if payment.remaining > 0 and can('payments.manage') else 'Ödeme Detayı' }}</a>
+    </div></div>
+    {% endif %}
+
     {% if can_manage and actions %}
     <div class="card" style="margin-bottom:14px">
       <div class="card__head"><div class="card__title">İşlemler</div></div>

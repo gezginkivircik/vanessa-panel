@@ -159,7 +159,14 @@ def detail(appointment_id: int):
     if a["customer_package_id"]:
         from ..services.dashboard import package_progress
         pkg = package_progress(db, a["customer_package_id"])
+    payment = None
+    if has_permission(g.user, "payments.view"):
+        payment = db.one("SELECT id, status, total_kurus, discount_kurus, paid_kurus FROM payments "
+                         "WHERE appointment_id = ? AND status <> 'void' ORDER BY id DESC LIMIT 1", (appointment_id,))
+        if payment:
+            payment["remaining"] = payment["total_kurus"] - payment["discount_kurus"] - payment["paid_kurus"]
     return render_template("appointments/detail.html", a=a, history=svc.history(db, appointment_id), pkg=pkg,
+                           payment=payment,
                            actions=svc.TRANSITIONS.get(a["status"], ()), ACTION_LABELS=svc.ACTION_LABELS,
                            STATUS_LABELS=svc.STATUS_LABELS,
                            can_manage=has_permission(g.user, "appointments.manage"),

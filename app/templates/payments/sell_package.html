@@ -1,0 +1,34 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Paket Sat{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field__error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow"><a href="{{ url_for('customers.profile', customer_id=c.id, sekme='seanslar') }}">{{ c.first_name }} {{ c.last_name }}</a></div><h1>Paket Sat</h1></div></div>
+<form class="card form-card" method="post" novalidate>
+  <div class="card__body">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <div class="field {{ 'field--error' if errors.get('service_id') }}"><label for="service_id">Hizmet</label>
+      <select class="input" id="service_id" name="service_id">
+        <option value="">Seçin…</option>
+        {% for s in services %}<option value="{{ s.id }}" {% if form.service_id|string == s.id|string %}selected{% endif %}>{{ s.name }}{% if s.tracks_sessions %} (seanslı){% endif %}</option>{% endfor %}
+      </select>{{ err('service_id') }}</div>
+    <div class="form-grid form-grid--2">
+      <div class="field {{ 'field--error' if errors.get('session_count') }}"><label for="session_count">Seans sayısı (bölge başına)</label>
+        <input class="input" id="session_count" name="session_count" type="number" min="1" max="100" value="{{ form.session_count or '' }}">{{ err('session_count') }}</div>
+      <div class="field {{ 'field--error' if errors.get('total') }}"><label for="total">Paket tutarı (TL)</label>
+        <input class="input" id="total" name="total" inputmode="decimal" value="{{ form.total or '' }}" placeholder="4999">{{ err('total') }}</div>
+    </div>
+    <div class="field {{ 'field--error' if errors.get('areas') }}"><label for="areas">Bölgeler <span class="muted">(virgülle ayırın; tek bölge ise boş bırakın)</span></label>
+      <input class="input" id="areas" name="areas" value="{{ form.areas or '' }}" placeholder="Tüm Bacak, Koltuk Altı, Genital">
+      <span class="field__hint">Her bölgenin seansları ayrı takip edilir.</span>{{ err('areas') }}</div>
+    <div class="field"><label for="name">Paket adı <span class="muted">(boşsa otomatik: "10 Seans Lazer Epilasyon")</span></label>
+      <input class="input" id="name" name="name" value="{{ form.name or '' }}" maxlength="160"></div>
+    <fieldset class="fieldset"><legend>Peşinat <span class="muted">(opsiyonel)</span></legend>
+      <div class="field {{ 'field--error' if errors.get('first_payment') }}" style="margin-bottom:8px"><input class="input" name="first_payment" inputmode="decimal" value="{{ form.first_payment or '' }}" placeholder="2000" aria-label="Peşinat">{{ err('first_payment') }}</div>
+      <div class="chips chips--wrap">{% for k, l in PAY_METHODS.items() %}<label class="chip"><input type="radio" name="method" value="{{ k }}" {% if form.method == k %}checked{% endif %}> {{ l }}</label>{% endfor %}</div>
+    </fieldset>
+    <div class="field"><label for="notes">Not</label><input class="input" id="notes" name="notes" value="{{ form.notes or '' }}" maxlength="1000"></div>
+    <p class="small muted">Kaydedince paket için bir ödeme kaydı açılır. Müşterinin bu hizmet için bekleyen randevuları otomatik pakete bağlanır.</p>
+    <div class="form-actions"><a class="btn btn--ghost" href="{{ url_for('customers.profile', customer_id=c.id, sekme='seanslar') }}">Vazgeç</a><button class="btn btn--primary" type="submit">Paketi Kaydet</button></div>
+  </div>
+</form>
+{% endblock %}

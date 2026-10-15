@@ -1,0 +1,80 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Ödeme{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field__error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow"><a href="{{ url_for('customers.profile', customer_id=p.customer_id, sekme='odemeler') }}">{{ p.first_name }} {{ p.last_name }}</a></div>
+  <h1>{{ p.description }}</h1></div>
+  <span class="status status--{{ {'paid':'confirmed','partial':'pending','unpaid':'cancelled','void':'completed'}[p.status] }}" style="font-size:13px;padding:6px 12px">{{ PAY_STATUS[p.status] }}</span>
+</div>
+
+<div class="grid-2">
+  <div>
+    <dl class="kv">
+      <div><dt>Toplam</dt><dd>{{ p.total_kurus|money }}{% if p.discount_kurus %}<small>İndirim {{ p.discount_kurus|money }}</small>{% else %}<small>&nbsp;</small>{% endif %}</dd></div>
+      <div><dt>Ödenen</dt><dd>{{ p.paid_kurus|money }}<small>&nbsp;</small></dd></div>
+      <div><dt>Kalan</dt><dd {% if p.remaining > 0 %}style="color:var(--st-cancelled)"{% endif %}>{{ p.remaining|money }}<small>&nbsp;</small></dd></div>
+      <div><dt>Tarih</dt><dd>{{ p.created_at|date }}<small>{% if p.appointment_id %}<a href="{{ url_for('appointments.detail', appointment_id=p.appointment_id) }}">Randevu</a>{% elif p.customer_package_id %}Paket{% else %}Manuel{% endif %}</small></dd></div>
+    </dl>
+    <div class="card">
+      <div class="card__head"><div class="card__title">Tahsilat Geçmişi</div></div>
+      <div class="card__body">
+        {% for t in p.transactions %}
+          <div class="tx"><div><strong class="tabular">{{ t.paid_at|date }}</strong> <span class="muted small">{{ t.paid_at|time }}</span><br>
+            <span class="small muted">{{ PAY_METHODS[t.method] }}{% if t.recorded_by_name %} · {{ t.recorded_by_name }}{% endif %}{% if t.note %} · {{ t.note }}{% endif %}</span></div>
+            <strong class="tabular" {% if t.amount_kurus < 0 %}style="color:var(--st-cancelled)"{% endif %}>{{ t.amount_kurus|money }}{% if t.amount_kurus < 0 %} iade{% endif %}</strong></div>
+        {% else %}<p class="muted" style="margin:0">Henüz tahsilat yok.</p>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div>
+    {% if can('payments.manage') and p.status != 'void' and p.remaining > 0 %}
+    <form class="card" method="post" novalidate style="margin-bottom:14px">
+      <div class="card__head"><div class="card__title">Tahsilat Al</div></div>
+      <div class="card__body">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+        {% if errors.get('_') %}<div class="alert alert--error">{{ errors['_'] }}</div>{% endif %}
+        <div class="field {{ 'field--error' if errors.get('amount') }}"><label for="amount">Tutar (TL)</label>
+          <input class="input" id="amount" name="amount" inputmode="decimal" value="{{ form.amount or '' }}" required>{{ err('amount') }}</div>
+        <div class="field {{ 'field--error' if errors.get('method') }}"><label>Yöntem</label>
+          <div class="chips chips--wrap">{% for k, l in PAY_METHODS.items() %}<label class="chip"><input type="radio" name="method" value="{{ k }}" {% if form.method == k %}checked{% endif %}> {{ l }}</label>{% endfor %}</div>{{ err('method') }}</div>
+        <div class="form-grid form-grid--2">
+          <div class="field {{ 'field--error' if errors.get('paid_on') }}"><label for="paid_on">Tarih</label>
+            <input class="input" type="date" id="paid_on" name="paid_on" value="{{ form.paid_on or '' }}" max="{{ form.paid_on }}">{{ err('paid_on') }}</div>
+          <div class="field"><label for="note">Not</label><input class="input" id="note" name="note" value="{{ form.note or '' }}" maxlength="255"></div>
+        </div>
+        <div class="form-actions"><button class="btn btn--primary btn--block" type="submit">Tahsilatı Kaydet</button></div>
+      </div>
+    </form>
+    {% elif p.status == 'paid' %}
+      <div class="alert alert--success">Bu kayıt tamamen ödendi.</div>
+    {% endif %}
+
+    {% if can('payments.void') and p.status != 'void' %}
+    <details class="card" style="margin-bottom:14px">
+      <summary class="card__head" style="cursor:pointer;padding-bottom:16px"><div class="card__title">Yönetici İşlemleri</div><span class="small muted">aç</span></summary>
+      <div class="card__body">
+        {% if p.paid_kurus > 0 %}
+        <form method="post" novalidate>
+          <input type="hidden" name="_csrf" value="{{ csrf_token }}"><input type="hidden" name="refund" value="1">
+          <div class="form-grid form-grid--2">
+            <div class="field"><label>İade tutarı (TL)</label><input class="input" name="amount" inputmode="decimal"></div>
+            <div class="field"><label>Yöntem</label><select class="input" name="method">{% for k, l in PAY_METHODS.items() %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></div>
+          </div>
+          <div class="field"><label>Not</label><input class="input" name="note" maxlength="255"></div>
+          <button class="btn btn--danger btn--sm" type="submit" data-confirm="İade kaydedilsin mi?">İade Kaydet</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('payments.void', payment_id=p.id) }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+          <div class="field"><label>İptal nedeni</label><input class="input" name="reason" required maxlength="200" placeholder="Hatalı kayıt, işlem yapılmadı…"></div>
+          <button class="btn btn--danger btn--sm" type="submit" data-confirm="Ödeme kaydı iptal edilsin mi?">Kaydı İptal Et</button>
+        </form>
+        {% endif %}
+      </div>
+    </details>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

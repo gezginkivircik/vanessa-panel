@@ -7,7 +7,7 @@
   <a href="{{ url_for('panel.dashboard') }}" {% if ep == 'panel.dashboard' %}aria-current="page"{% endif %}>{{ icon('home') }}Bugün</a>
   <a href="{{ url_for('appointments.calendar') }}" {% if ep and ep.startswith('appointments.') and ep != 'appointments.quick_new' %}aria-current="page"{% endif %}>{{ icon('calendar') }}Takvim</a>
   {% if can('customers.view') %}<a href="{{ url_for('customers.index') }}" {% if ep and ep.startswith('customers.') %}aria-current="page"{% endif %}>{{ icon('users') }}Müşteriler</a>{% endif %}
-  {% if can('payments.view') %}<a class="is-soon" aria-disabled="true">{{ icon('card') }}Ödemeler<span class="soon">Faz 7</span></a>{% endif %}
+  {% if can('payments.view') %}<a href="{{ url_for('payments.index') }}" {% if ep and ep.startswith('payments.') and ep not in ('payments.sell_package','payments.new_charge') %}aria-current="page"{% endif %}>{{ icon('card') }}Ödemeler</a>{% endif %}
   {% if can('messages.view') %}<a class="is-soon" aria-disabled="true">{{ icon('chat') }}WhatsApp<span class="soon">Faz 8</span></a>{% endif %}
   {% if can('reports.view') %}<a class="is-soon" aria-disabled="true">{{ icon('chart') }}Raporlar<span class="soon">Faz 11</span></a>{% endif %}
   {% if can('users.manage') or can('audit.view') %}

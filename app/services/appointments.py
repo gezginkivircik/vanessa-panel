@@ -294,6 +294,8 @@ def _record_no_show(db: Connection, a: dict) -> None:
 
 def _on_completed(db: Connection, a: dict, user: dict | None) -> None:
     performed = a["starts_at"]
+    from .payments import charge_for_completed_appointment
+    charge_for_completed_appointment(db, user, a)
     # Paketli işlem → her bölgenin sıradaki seansı tamamlanır
     if a["customer_package_id"]:
         cp_id = a["customer_package_id"]

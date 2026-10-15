@@ -1,0 +1,48 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Ödemeler{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Kasa</div><h1>Ödemeler</h1></div></div>
+
+{% if finance %}
+<section class="stats" aria-label="Özet">
+  <div class="card stat"><div class="stat__label">{{ {'bugun':'Bugün','dun':'Dün','ay':'Bu Ay'}[period] }} tahsilat</div><div class="stat__value stat__value--money tabular">{{ totals.total|money }}</div></div>
+  <div class="card stat"><div class="stat__label">Nakit</div><div class="stat__value stat__value--money tabular">{{ totals.by_method.get('cash', 0)|money }}</div></div>
+  <div class="card stat"><div class="stat__label">Kart</div><div class="stat__value stat__value--money tabular">{{ totals.by_method.get('card', 0)|money }}</div></div>
+  <div class="card stat"><div class="stat__label">Bekleyen alacak</div><div class="stat__value stat__value--money tabular" style="color:var(--st-cancelled)">{{ totals.outstanding|money }}</div></div>
+</section>
+{% endif %}
+
+<div class="grid-2">
+  <article class="card">
+    <div class="card__head"><div class="card__title">Açık Bakiyeler</div><span class="small muted">{{ open|length }} kayıt</span></div>
+    <div class="card__body" style="padding:6px 0 0">
+      {% if open %}
+      <ul class="clist">
+        {% for p in open %}
+        <li><a href="{{ url_for('payments.detail', payment_id=p.id) }}">
+          <span class="avatar" aria-hidden="true">{{ p.first_name[:1] }}{{ p.last_name[:1] }}</span>
+          <span><span class="clist__name">{{ p.first_name }} {{ p.last_name }}</span><br><span class="clist__meta">{{ p.description }} · {{ p.created_at|date }}</span></span>
+          <span class="clist__side"><strong style="color:var(--st-cancelled)">{{ p.remaining|money }}</strong>{{ PAY_STATUS[p.status] }}</span>
+        </a></li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="muted" style="padding:0 18px 18px">Açık bakiye yok.</p>{% endif %}
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card__head"><div class="card__title">Tahsilatlar</div>
+      <nav class="seg">{% for k, l in [('bugun','Bugün'),('dun','Dün'),('ay','Bu Ay')] %}<a href="?donem={{ k }}" aria-current="{{ 'true' if period == k else 'false' }}">{{ l }}</a>{% endfor %}</nav>
+    </div>
+    <div class="card__body">
+      {% for t in txs %}
+        <div class="tx">
+          <div><a href="{{ url_for('payments.detail', payment_id=t.payment_id) }}" style="text-decoration:none"><strong>{{ t.first_name }} {{ t.last_name }}</strong></a><br>
+            <span class="small muted">{{ t.description }} · {{ PAY_METHODS[t.method] }} · {{ t.paid_at|time }}{% if t.recorded_by_name %} · {{ t.recorded_by_name }}{% endif %}</span></div>
+          <strong class="tabular" {% if t.amount_kurus < 0 %}style="color:var(--st-cancelled)"{% endif %}>{{ t.amount_kurus|money }}</strong>
+        </div>
+      {% else %}<p class="muted" style="margin:0">Bu dönemde tahsilat yok.</p>{% endfor %}
+    </div>
+  </article>
+</div>
+{% endblock %}

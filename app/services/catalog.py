@@ -40,9 +40,11 @@ def _money(value, name: str, errors: dict, label: str, required: bool = True) ->
         if required:
             errors[name] = f"{label} gerekli."
         return None
-    # "1.250,50" / "1250.50" / "1250" → kuruş
+    # "1.250,50" / "3.000" / "1250.50" / "1250" → kuruş (Türkçe binlik ayırıcı nokta)
     if "," in raw:
         raw = raw.replace(".", "").replace(",", ".")
+    elif re.fullmatch(r"\d{1,3}(\.\d{3})+", raw):
+        raw = raw.replace(".", "")
     try:
         v = round(float(raw) * 100)
     except ValueError:
