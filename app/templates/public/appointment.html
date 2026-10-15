@@ -1,0 +1,61 @@
+{% extends "public/_site.html" %}
+{% from "partials/icons.html" import icon %}
+{% block title %}Randevunuz · Vanessa Güzellik Merkezi{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block nav_class %}site-nav--line{% endblock %}
+{% block mbar %}{% endblock %}
+{% set ST = {'pending': ('Onay bekliyor', 'pending'), 'confirmed': ('Onaylandı', 'confirmed'), 'cancelled': ('İptal edildi', 'cancelled'),
+             'arrived': ('Geldiniz', 'arrived'), 'completed': ('Tamamlandı', 'completed'), 'no_show': ('Gelinmedi', 'no_show'),
+             'postponed': ('Ertelendi', 'postponed'), 'reschedule_needed': ('Yeni saat gerekli', 'reschedule_needed')} %}
+{% block main %}
+<div class="bk">
+  {% if just_created %}
+    <div class="eyebrow-l">Talebiniz alındı</div>
+    <h1>Teşekkürler, {{ a.first_name }}!</h1>
+    <p class="lead" style="margin:0 0 18px">Randevu talebiniz bize ulaştı. Ekibimiz en kısa sürede onaylayacak{% if a.status == 'pending' %}; gerekirse sizi {{ a.phone_display }} numarasından arayacağız{% endif %}.</p>
+  {% elif cancelled %}
+    <div class="eyebrow-l">İptal edildi</div><h1>Randevunuz iptal edildi</h1>
+    <p class="lead" style="margin:0 0 18px">Yeni bir randevu almak isterseniz aşağıdaki bağlantıyı kullanabilirsiniz.</p>
+  {% else %}
+    <div class="eyebrow-l">Randevunuz</div><h1>{{ a.service_name }}</h1>
+  {% endif %}
+  {% if error %}<div class="alert alert--error" role="alert">{{ error }}</div>{% endif %}
+
+  <div class="ticket">
+    <span class="status status--{{ ST.get(a.status, (a.status, 'pending'))[1] }}" style="font-size:13px;padding:6px 12px">{{ ST.get(a.status, (a.status,))[0] }}</span>
+    <dl>
+      <dt>Hizmet</dt><dd>{{ a.service_name }}</dd>
+      <dt>Tarih</dt><dd>{{ a.date_label }}</dd>
+      <dt>Saat</dt><dd>{{ a.time_label }} <span class="muted small">(yaklaşık {{ a.duration_minutes }} dk)</span></dd>
+      <dt>Uzman</dt><dd>{{ a.staff_name }}</dd>
+      <dt>Ad Soyad</dt><dd>{{ a.first_name }} {{ a.last_name }}</dd>
+      <dt>Adres</dt><dd>{{ BRAND.address }}</dd>
+    </dl>
+  </div>
+
+  {% if a.status in ('pending', 'confirmed') %}
+  <div class="alert" style="margin-top:14px;background:var(--accent-soft);border-color:transparent">
+    <strong>Bu sayfanın bağlantısını saklayın.</strong> Randevunuzu buradan görüntüleyebilir{% if a.can_cancel %} ve gerekirse iptal edebilirsiniz{% endif %}. Bağlantı yalnızca size özeldir.
+  </div>
+  {% endif %}
+
+  <div class="hero__cta">
+    <a class="btn" href="tel:{{ BRAND.phone_e164 }}">{{ icon('phone') }} Ara</a>
+    <a class="btn" href="https://wa.me/{{ BRAND.phone_e164|replace('+','') }}" target="_blank" rel="noopener">{{ icon('whatsapp') }} WhatsApp</a>
+    {% if a.status in ('cancelled',) %}<a class="btn btn--primary" href="{{ url_for('public.booking') }}">Yeni randevu al</a>{% endif %}
+  </div>
+
+  {% if a.can_cancel %}
+  <details class="card" style="margin-top:22px">
+    <summary class="card__head" style="cursor:pointer;padding-bottom:16px"><div class="card__title">Randevuyu iptal et</div><span class="small muted">aç</span></summary>
+    <form class="card__body" method="post" action="{{ url_for('public.cancel_appointment', token=token) }}">
+      <input type="hidden" name="_csrf" value="{{ pre_csrf() }}">
+      <p class="small muted" style="margin-top:0">Saat değişikliği için iptal etmek yerine bizi aramanızı öneririz.</p>
+      <button class="btn btn--danger" type="submit" data-confirm="Randevunuz iptal edilsin mi?">Evet, iptal et</button>
+    </form>
+  </details>
+  {% elif a.status in ('pending', 'confirmed') %}
+    <p class="small muted" style="margin-top:18px">Randevunuza az kaldığı için online iptal kapalı. Değişiklik için lütfen bizi arayın.</p>
+  {% endif %}
+</div>
+{% endblock %}

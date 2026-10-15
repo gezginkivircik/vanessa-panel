@@ -27,6 +27,8 @@
           <div><dt>Saat</dt><dd class="tabular">{{ a.starts_at|time }} – {{ a.ends_at|time }}<small>{{ a.starts_at|date }}</small></dd></div>
           <div><dt>Ücret</dt><dd>{% if current_user.role != 'specialist' %}{{ a.price_kurus|money }}{% else %}—{% endif %}<small>{{ {'panel':'Panelden','online':'Online','whatsapp':'WhatsApp','phone':'Telefon'}[a.source] }}</small></dd></div>
         </dl>
+        {% if a.source == 'online' and a.status == 'pending' %}<div class="alert" style="margin:12px 0 0;background:var(--st-pending-bg);border-color:transparent;color:var(--st-pending)"><strong>Online talep.</strong> Müşteri web sitesinden oluşturdu; onaylamak için aşağıdan "Onayla"ya basın.</div>{% endif %}
+        {% if a.customer_note %}<div class="small" style="margin-top:10px"><span class="muted">Müşteri notu:</span> {{ a.customer_note }}</div>{% endif %}
         {% if pkg %}
           <div style="margin-top:4px">
             <div class="small"><strong>{{ pkg.name }}</strong> · {{ pkg.done }} / {{ pkg.total }} seans tamamlandı{% if a.status not in ['completed','cancelled','no_show'] %} · bu randevu <strong>{{ pkg.next }}. seans</strong>{% endif %}</div>

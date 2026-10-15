@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import icon, wordmark %}
+{% block meta %}
+<meta name="description" content="{% block description %}Vanessa Güzellik Merkezi — İskenderun'da lazer epilasyon, cilt bakımı, hydrafacial, kaş-kirpik ve daha fazlası. Online randevu alın.{% endblock %}">
+<link rel="canonical" href="{{ request.base_url }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ BRAND.name }}">
+<meta property="og:title" content="{{ self.title() }}">
+<meta property="og:description" content="{{ self.description() }}">
+<meta property="og:locale" content="tr_TR">
+{% block extra_meta %}{% endblock %}
+{% endblock %}
+{% block body %}
+{% set ep = request.endpoint %}
+<div class="site">
+  <header class="site-nav {% block nav_class %}{% endblock %}" data-sticky-nav>
+    <div class="wrap site-nav__in">
+      {{ wordmark(logo_path, url_for('public.home')) }}
+      <nav class="site-nav__links" aria-label="Ana menü">
+        <a href="{{ url_for('public.services') }}" {% if ep in ('public.services','public.service') %}aria-current="page"{% endif %}>Hizmetler</a>
+        <a href="{{ url_for('public.home') }}#hakkimizda">Hakkımızda</a>
+        <a href="{{ url_for('public.home') }}#iletisim">İletişim</a>
+      </nav>
+      <a class="btn btn--primary btn--sm" href="{{ url_for('public.booking') }}">Randevu Al</a>
+    </div>
+  </header>
+  <main id="icerik">{% block main %}{% endblock %}</main>
+  <footer class="site-foot">
+    <div class="wrap site-foot__in">
+      <div>© {{ BRAND.name }} · {{ BRAND.address }}</div>
+      <nav aria-label="Alt menü">
+        <a href="tel:{{ BRAND.phone_e164 }}">{{ BRAND.phone_display }}</a>
+        <a href="{{ url_for('public.kvkk') }}">KVKK Aydınlatma Metni</a>
+        <a href="{{ url_for('auth.login') }}">Personel Girişi</a>
+      </nav>
+    </div>
+  </footer>
+  {% block mbar %}
+  <nav class="mbar" aria-label="Hızlı iletişim">
+    <a class="btn" href="tel:{{ BRAND.phone_e164 }}">{{ icon('phone') }} Ara</a>
+    <a class="btn" href="https://wa.me/{{ BRAND.phone_e164|replace('+','') }}" target="_blank" rel="noopener">{{ icon('whatsapp') }} WhatsApp</a>
+    <a class="btn btn--primary" href="{{ url_for('public.booking') }}">{{ icon('calendar') }} Randevu Al</a>
+  </nav>
+  {% endblock %}
+</div>
+{% endblock %}

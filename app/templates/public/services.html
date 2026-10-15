@@ -1,0 +1,16 @@
+{% extends "public/_site.html" %}
+{% from "public/_svc_card.html" import svc_card %}
+{% block title %}Hizmetler · Vanessa Güzellik Merkezi{% endblock %}
+{% block nav_class %}site-nav--line{% endblock %}
+{% block main %}
+<section class="sec">
+  <div class="wrap">
+    <div class="sec__head"><div><div class="eyebrow-l">Hizmetler</div><h2>Uygulamalarımız ve fiyatlar</h2></div>
+      <a class="btn btn--primary btn--sm" href="{{ url_for('public.booking') }}">Randevu al</a></div>
+    {% if categories %}
+      <div class="svc-grid">{% for cat, items in categories %}{% for s in items %}{{ svc_card(s) }}{% endfor %}{% endfor %}</div>
+    {% else %}<p class="muted">Hizmet listesi yakında burada olacak.</p>{% endif %}
+    <p class="small muted" style="margin-top:28px">Fiyatlar bilgilendirme amaçlıdır; paket ve bölgeye göre değişebilir. Güncel fiyat için bizi arayabilirsiniz.</p>
+  </div>
+</section>
+{% endblock %}

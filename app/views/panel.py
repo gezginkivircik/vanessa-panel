@@ -138,3 +138,19 @@ def audit_log():
         r["after"] = json_value(r["after_json"])
     return render_template("panel/audit.html", rows=rows, page=page, pages=max(1, -(-total // per)),
                            action=action, ACTION_LABELS=ACTION_LABELS)
+
+
+@bp.get("/bildirim/<int:notification_id>")
+@require_permission("notifications.view")
+def open_notification(notification_id: int):
+    """Bildirimi okundu işaretler ve ilgili sayfaya yönlendirir."""
+    from ..timeutil import now_iso
+    db = get_db()
+    n = db.one("SELECT * FROM notifications WHERE id = ? AND (user_id IS NULL OR user_id = ?)",
+               (notification_id, g.user["id"]))
+    if not n:
+        abort(404)
+    if not n["read_at"]:
+        db.execute("UPDATE notifications SET read_at = ? WHERE id = ?", (now_iso(), notification_id))
+    link = n["link"] or ""
+    return redirect(link if link.startswith("/panel") and not link.startswith("//") else url_for("panel.dashboard"))

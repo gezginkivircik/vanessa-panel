@@ -187,7 +187,7 @@ Mobilde alt sekme çubuğu: **Bugün · Randevular · + (Randevu/Müşteri) · M
 | 9 | Scheduler + kuyruk + otomatik mesajlar | ⏳ |
 | 10 | Webhook (imza doğrulama, idempotency), buton cevaplarıyla randevu onayı | ⏳ |
 | 11 | Raporlama, dışa aktarma (CSV/XLSX) | ⏳ |
-| 12 | Müşteri web sitesi + online randevu | ⏳ |
+| 12 | Müşteri web sitesi + online randevu | ✅ (tanıtım sitesi, hizmet sayfaları, 4 adımlı online randevu talebi, imzalı/süreli randevu bağlantısı ve online iptal, KVKK metni, SEO; bot tuzağı, IP ve telefon bazlı hız sınırı; +19 test) |
 | 13 | Mobil optimizasyon, güvenlik sertleştirme, uçtan uca testler | ⏳ |
 
 Her fazın sonunda bütün test paketi (`python -m unittest`) çalıştırılır. Önceki fazların testleri geçmeden yeni faza geçilmez.

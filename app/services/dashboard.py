@@ -88,7 +88,7 @@ def get_dashboard(db: Connection, user: dict, finance: bool) -> dict:
     data["today_list"] = db.query(base + " AND a.starts_at >= ? AND a.starts_at < ? ORDER BY a.starts_at, st.sort_order",
                                   sp + [t0, t1])
     data["unread_notifications"] = db.query(
-        "SELECT id, title, body, created_at FROM notifications WHERE read_at IS NULL "
+        "SELECT id, title, body, link, created_at FROM notifications WHERE read_at IS NULL "
         "AND (user_id IS NULL OR user_id = ?) ORDER BY created_at DESC LIMIT 5", (user["id"],)
     ) if user["role"] != "specialist" else []
     return data

@@ -1,26 +1,96 @@
-{% extends "base.html" %}
-{% from "partials/icons.html" import icon, wordmark %}
+{% extends "public/_site.html" %}
+{% from "partials/icons.html" import icon %}
+{% from "public/_svc_card.html" import svc_card %}
 {% block title %}Vanessa Güzellik Merkezi · İskenderun{% endblock %}
-{% block meta %}<meta name="description" content="Vanessa Güzellik Merkezi — İskenderun'da lazer epilasyon, cilt bakımı, hydrafacial ve daha fazlası.">{% endblock %}
-{% block body %}
-<div class="pub">
-  <header class="pub__nav">
-    {{ wordmark(logo_path, '/') }}
-    <a class="btn btn--sm btn--ghost" href="{{ url_for('auth.login') }}">Personel Girişi</a>
-  </header>
-  <section class="pub__hero">
+{% block extra_meta %}
+<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ {
+  "@context": "https://schema.org", "@type": "BeautySalon", "name": BRAND.name, "telephone": BRAND.phone_e164,
+  "url": request.url_root,
+  "address": {"@type": "PostalAddress", "streetAddress": "Mithat Paşa Caddesi, Ersan Taksi Çaprazı",
+              "addressLocality": "İskenderun", "addressRegion": "Hatay", "addressCountry": "TR"}
+}|tojson }}</script>
+{% endblock %}
+{% block main %}
+<section class="hero">
+  <div class="wrap hero__grid">
     <div>
-      <h1>Vanessa<br>Güzellik Merkezi</h1>
-      <p>İskenderun'da size özel, özenli ve profesyonel güzellik deneyimi.</p>
-      <div class="pub__cta">
-        <a class="btn btn--primary" href="tel:{{ BRAND.phone_e164 }}">{{ icon('phone') }} Randevu Al · {{ BRAND.phone_display }}</a>
-        <a class="btn" href="https://wa.me/{{ BRAND.phone_e164|replace('+','') }}" rel="noopener" target="_blank">{{ icon('whatsapp') }} WhatsApp</a>
+      <div class="eyebrow-l">İskenderun · Güzellik Merkezi</div>
+      <h1 class="h-display">Kendinize ayırdığınız zaman, <em>özenle.</em></h1>
+      <p class="lead">Lazer epilasyondan cilt bakımına, kaş ve kirpikten kalıcı makyaja kadar; size özel planlanan, seans seans takip edilen bakım.</p>
+      <div class="hero__cta">
+        <a class="btn btn--primary" href="{{ url_for('public.booking') }}">{{ icon('calendar') }} Online Randevu Al</a>
+        <a class="btn" href="https://wa.me/{{ BRAND.phone_e164|replace('+','') }}" target="_blank" rel="noopener">{{ icon('whatsapp') }} WhatsApp'tan Yazın</a>
       </div>
-      <p class="small muted" style="margin-top:22px">Online randevu çok yakında.</p>
+      <div class="hero__facts">
+        <span>{{ icon('pin') }} Mithat Paşa Cad., İskenderun</span>
+        {% for h in hours if h.today %}<span>{{ icon('clock') }} Bugün {{ h.hours or 'kapalı' }}</span>{% endfor %}
+        <span>{{ icon('phone') }} <a href="tel:{{ BRAND.phone_e164 }}" style="text-decoration:none">{{ BRAND.phone_display }}</a></span>
+      </div>
     </div>
-  </section>
-  <footer class="pub__foot">
-    {{ BRAND.address }} · <a href="tel:{{ BRAND.phone_e164 }}">{{ BRAND.phone_display }}</a>
-  </footer>
-</div>
+    {% if services %}
+    <aside class="hero__panel" aria-label="Öne çıkan hizmetler">
+      <div class="eyebrow-l">Hizmetlerimiz</div>
+      <h2>Size uygun bakımı seçin</h2>
+      <ul class="hero__list">
+        {% for s in services[:5] %}
+        <li><a href="{{ url_for('public.service', slug=s.slug) }}">{{ s.name }}</a>
+          {% if s.price_kurus %}<span class="price">{% if s.campaign_price_kurus is not none %}<span class="badge-camp">Kampanya</span> {{ s.campaign_price_kurus|money }}{% else %}{{ s.price_kurus|money }}{% endif %}</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+      <a class="btn btn--block" style="margin-top:14px" href="{{ url_for('public.services') }}">Tüm hizmetler</a>
+    </aside>
+    {% endif %}
+  </div>
+</section>
+
+{% if campaigns %}
+<section class="sec sec--alt" id="kampanyalar">
+  <div class="wrap">
+    <div class="sec__head"><div><div class="eyebrow-l">Kampanyalar</div><h2>Şu an geçerli fırsatlar</h2></div></div>
+    <div class="svc-grid">{% for s in campaigns %}{{ svc_card(s) }}{% endfor %}</div>
+  </div>
+</section>
+{% endif %}
+
+<section class="sec" id="hizmetler">
+  <div class="wrap">
+    <div class="sec__head"><div><div class="eyebrow-l">Hizmetler</div><h2>Uygulamalarımız</h2></div>
+      <a class="btn btn--sm" href="{{ url_for('public.booking') }}">Randevu al</a></div>
+    {% if categories %}
+      <div class="svc-grid">{% for cat, items in categories %}{% for s in items %}{{ svc_card(s) }}{% endfor %}{% endfor %}</div>
+    {% else %}<p class="muted">Hizmet listesi yakında burada olacak.</p>{% endif %}
+  </div>
+</section>
+
+<section class="sec sec--alt" id="hakkimizda">
+  <div class="wrap about about--stack">
+    <div>
+      <div class="eyebrow-l">Hakkımızda</div>
+      <blockquote style="margin-top:14px">“Her uygulama, sizi dinlemekle başlar.”<cite>{{ BRAND.owner }} · Kurucu</cite></blockquote>
+    </div>
+    <div class="pillars">
+      <div class="pillar"><div class="pillar__n">01</div><h3>Size özel plan</h3><p>Cilt ve kıl yapınıza, beklentinize göre uygulama ve seans planı oluşturulur.</p></div>
+      <div class="pillar"><div class="pillar__n">02</div><h3>Seans takibi</h3><p>Paketinizdeki her bölgenin kaçıncı seansta olduğunu ve sonraki tarihinizi biz takip ederiz.</p></div>
+      <div class="pillar"><div class="pillar__n">03</div><h3>Özen ve hijyen</h3><p>Her uygulama öncesi ve sonrası ekipman ve alan hijyenine özen gösterilir.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="iletisim">
+  <div class="wrap">
+    <div class="sec__head"><div><div class="eyebrow-l">İletişim</div><h2>Bizi ziyaret edin</h2></div></div>
+    <div class="contact">
+      <div class="contact__card">
+        <div class="contact__row">{{ icon('pin') }}<div><strong>Adres</strong><br>{{ BRAND.address }}<br>
+          <a href="https://www.google.com/maps/search/?api=1&query={{ ('Vanessa Güzellik Merkezi ' ~ BRAND.address)|urlencode }}" target="_blank" rel="noopener" style="color:var(--accent-ink)">Yol tarifi al →</a></div></div>
+        <div class="contact__row">{{ icon('phone') }}<div><strong>Telefon</strong><br><a href="tel:{{ BRAND.phone_e164 }}">{{ BRAND.phone_display }}</a></div></div>
+        <div class="contact__row">{{ icon('whatsapp') }}<div><strong>WhatsApp</strong><br><a href="https://wa.me/{{ BRAND.phone_e164|replace('+','') }}" target="_blank" rel="noopener">Mesaj gönderin</a></div></div>
+        <div class="contact__row">{{ icon('clock') }}<div style="flex:1"><strong>Çalışma saatleri</strong>
+          <table class="hours"><tbody>{% for h in hours %}<tr class="{{ 'is-today' if h.today }}"><td>{{ h.day }}</td><td>{{ h.hours or 'Kapalı' }}</td></tr>{% endfor %}</tbody></table></div></div>
+      </div>
+      <iframe class="map" title="Vanessa Güzellik Merkezi konumu" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+        src="https://www.google.com/maps?q={{ ('Mithat Paşa Caddesi, İskenderun, Hatay')|urlencode }}&output=embed"></iframe>
+    </div>
+  </div>
+</section>
 {% endblock %}

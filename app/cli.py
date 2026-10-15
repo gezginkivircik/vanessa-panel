@@ -19,6 +19,8 @@ def register_cli(app: Flask) -> None:
         applied = migrate(c)
         with c.transaction():
             seed_settings_and_templates(c)
+            from .security.ratelimit import cleanup
+            cleanup(c)          # 7 günden eski hız sınırı kayıtlarını sil
         click.echo(f"Uygulanan migration: {', '.join(applied) or 'yok (güncel)'}")
         _bootstrap(c)
 

@@ -94,6 +94,7 @@ SETTINGS = {
     "booking.slot_step_minutes": 15,
     "booking.min_notice_minutes": 60,
     "booking.max_days_ahead": 60,
+    "booking.online_enabled": True,
     "no_show.alert_threshold": 2,
 }
 

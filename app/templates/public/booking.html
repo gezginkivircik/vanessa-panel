@@ -1,0 +1,120 @@
+{% extends "public/_site.html" %}
+{% from "partials/icons.html" import icon %}
+{% block title %}Online Randevu · Vanessa Güzellik Merkezi{% endblock %}
+{% block description %}Vanessa Güzellik Merkezi İskenderun için online randevu talebi oluşturun: hizmet, uzman, gün ve saat seçin.{% endblock %}
+{% block nav_class %}site-nav--line{% endblock %}
+{% block mbar %}{% endblock %}
+{% block main %}
+{% set step = 1 if not service else (2 if not staff_chosen else (3 if not time_s else 4)) %}
+<div class="bk">
+  <div class="eyebrow-l">Online Randevu</div>
+  <h1>Randevu talebi oluşturun</h1>
+  <p class="muted" style="margin:0">Talebiniz bize ulaşınca ekibimiz onaylar. Acil durumlar için <a href="tel:{{ BRAND.phone_e164 }}">{{ BRAND.phone_display }}</a>.</p>
+  <ol class="steps" aria-label="Adım {{ step }} / 4">{% for i in range(1, 5) %}<li class="{{ 'is-done' if i <= step }}"></li>{% endfor %}</ol>
+
+  {% if not booking_on %}
+    <div class="alert alert--error">Online randevu şu anda kapalı. Lütfen <a href="tel:{{ BRAND.phone_e164 }}">{{ BRAND.phone_display }}</a> numarasından veya WhatsApp'tan ulaşın.</div>
+  {% else %}
+  {% if errors.get('_') %}<div class="alert alert--error" role="alert">{{ errors['_'] }}</div>{% endif %}
+  {% if errors.get('saat') %}<div class="alert alert--error" role="alert">{{ errors['saat'] }}</div>{% endif %}
+
+  {# 1 — hizmet #}
+  <section class="bk-step {{ 'bk-step--active' if step == 1 }}">
+    <div class="bk-step__head"><div><div class="bk-step__title">1 · Hizmet</div>{% if service %}<div class="bk-step__value">{{ service.name }}</div>{% endif %}</div>
+      {% if service %}<a href="{{ url_for('public.booking') }}">Değiştir</a>{% endif %}</div>
+    {% if not service %}
+      {% for cat, items in categories %}
+        <div class="cat__title" style="margin-top:18px">{{ cat }}</div>
+        <div class="opt-list" style="margin-top:8px">
+        {% for s in items %}
+          <a class="opt" href="{{ url_for('public.booking', hizmet=s.slug) }}"><span>{{ s.name }}<small>{{ s.duration_minutes }} dk{% if s.short_description %} · {{ s.short_description }}{% endif %}</small></span>
+            <span class="opt__side">{% if s.price_kurus %}{% if s.campaign_price_kurus is not none %}<span class="badge-camp">Kampanya</span><br>{{ s.campaign_price_kurus|money }}{% else %}{{ s.price_kurus|money }}{% endif %}{% endif %}</span></a>
+        {% endfor %}
+        </div>
+      {% else %}<p class="muted">Şu an online randevuya açık hizmet yok. Lütfen bizi arayın.</p>{% endfor %}
+    {% endif %}
+  </section>
+
+  {# 2 — uzman #}
+  {% if service %}
+  <section class="bk-step {{ 'bk-step--active' if step == 2 }}">
+    <div class="bk-step__head"><div><div class="bk-step__title">2 · Uzman</div>
+      {% if staff_chosen %}<div class="bk-step__value">{% if staff_id %}{% for st in staff if st.id == staff_id %}{{ st.full_name }}{% endfor %}{% else %}Fark etmez{% endif %}</div>{% endif %}</div>
+      {% if staff_chosen and staff|length > 1 %}<a href="{{ url_for('public.booking', hizmet=service.slug) }}">Değiştir</a>{% endif %}</div>
+    {% if not staff_chosen %}
+      <div class="opt-list">
+        <a class="opt" href="{{ url_for('public.booking', hizmet=service.slug, uzman=0) }}"><span>Fark etmez<small>En yakın uygun saati gösterir</small></span><span class="opt__side">→</span></a>
+        {% for st in staff %}
+          <a class="opt" href="{{ url_for('public.booking', hizmet=service.slug, uzman=st.id) }}"><span>{{ st.full_name }}{% if st.title %}<small>{{ st.title }}</small>{% endif %}</span><span class="opt__side">→</span></a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {# 3 — gün ve saat #}
+  {% if staff_chosen %}
+  <section class="bk-step {{ 'bk-step--active' if step == 3 }}" id="saat">
+    <div class="bk-step__head"><div><div class="bk-step__title">3 · Gün ve saat</div>
+      {% if time_s %}<div class="bk-step__value">{{ day.strftime('%d.%m.%Y') }} · {{ time_s }}</div>{% endif %}</div>
+      {% if time_s %}<a href="{{ url_for('public.booking', hizmet=service.slug, uzman=staff_raw, tarih=day.isoformat()) }}#saat">Değiştir</a>{% endif %}</div>
+    {% if not time_s %}
+      <div class="days" role="list">
+        {% for d in strip %}
+          <a class="day" role="listitem" href="{{ url_for('public.booking', hizmet=service.slug, uzman=staff_raw, tarih=d.iso, hafta=week_start.isoformat()) }}#saat" aria-current="{{ 'true' if day and d.date == day else 'false' }}">
+            <span>{{ 'Bugün' if d.today else d.wd }}</span><b>{{ d.day }}</b><span>{{ d.mon }}</span></a>
+        {% endfor %}
+      </div>
+      <div class="week-nav">
+        {% if prev_week %}<a href="{{ url_for('public.booking', hizmet=service.slug, uzman=staff_raw, hafta=prev_week.isoformat()) }}#saat">← Önceki günler</a>{% else %}<span></span>{% endif %}
+        {% if next_week %}<a href="{{ url_for('public.booking', hizmet=service.slug, uzman=staff_raw, hafta=next_week.isoformat()) }}#saat">Sonraki günler →</a>{% endif %}
+      </div>
+      {% if day %}
+        {% if times %}
+          <div class="times">{% for t in times %}<a class="time" href="{{ url_for('public.booking', hizmet=service.slug, uzman=staff_raw, tarih=day.isoformat(), saat=t, hafta=week_start.isoformat()) }}#bilgiler">{{ t }}</a>{% endfor %}</div>
+        {% else %}
+          <p class="muted" style="margin:14px 0 0">Bu gün için uygun saat kalmadı. Başka bir gün seçin.</p>
+        {% endif %}
+      {% else %}
+        <p class="muted small" style="margin:10px 0 0">Uygun saatleri görmek için bir gün seçin.</p>
+      {% endif %}
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {# 4 — bilgiler #}
+  {% if time_s %}
+  <form class="bk-step bk-step--active" id="bilgiler" method="post" action="{{ url_for('public.booking_submit') }}" novalidate>
+    <div class="bk-step__title">4 · Bilgileriniz</div>
+    <input type="hidden" name="_csrf" value="{{ pre_csrf() }}">
+    <input type="hidden" name="hizmet" value="{{ service.slug }}"><input type="hidden" name="uzman" value="{{ staff_raw }}">
+    <input type="hidden" name="tarih" value="{{ day.isoformat() }}"><input type="hidden" name="saat" value="{{ time_s }}">
+    <div class="hp" aria-hidden="true"><label>Web sitesi <input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <div class="form-grid form-grid--2" style="margin-top:14px">
+      <div class="field {{ 'field--error' if errors.get('first_name') }}"><label for="first_name">Adınız</label>
+        <input class="input" id="first_name" name="first_name" autocomplete="given-name" value="{{ form.first_name or '' }}" maxlength="80" required>
+        {% if errors.get('first_name') %}<span class="field__error">{{ errors.first_name }}</span>{% endif %}</div>
+      <div class="field {{ 'field--error' if errors.get('last_name') }}"><label for="last_name">Soyadınız</label>
+        <input class="input" id="last_name" name="last_name" autocomplete="family-name" value="{{ form.last_name or '' }}" maxlength="80" required>
+        {% if errors.get('last_name') %}<span class="field__error">{{ errors.last_name }}</span>{% endif %}</div>
+    </div>
+    <div class="field {{ 'field--error' if errors.get('phone') }}"><label for="phone">Cep telefonunuz</label>
+      <input class="input" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx" value="{{ form.phone or '' }}" required>
+      <span class="field__hint">Randevunuzla ilgili size bu numaradan ulaşırız.</span>
+      {% if errors.get('phone') %}<span class="field__error">{{ errors.phone }}</span>{% endif %}</div>
+    <div class="field"><label for="note">Not <span class="muted">(isteğe bağlı)</span></label>
+      <input class="input" id="note" name="note" maxlength="300" value="{{ form.note or '' }}" placeholder="Ör. bölge, ilk kez geliyorum…"></div>
+    <label class="consent {{ 'field--error' if errors.get('kvkk') }}"><input type="checkbox" name="kvkk" value="1" {% if form.kvkk %}checked{% endif %}>
+      <span><a href="{{ url_for('public.kvkk') }}" target="_blank" rel="noopener">KVKK Aydınlatma Metni</a>'ni okudum; randevu talebim için ad, soyad ve telefon bilgilerimin işlenmesini anladım.</span></label>
+    {% if errors.get('kvkk') %}<div class="field__error" style="margin:-4px 0 8px 30px">{{ errors.kvkk }}</div>{% endif %}
+    <label class="consent"><input type="checkbox" name="consent_service" value="1" {% if form.consent_service %}checked{% endif %}>
+      <span>Randevu onayı ve hatırlatmaları WhatsApp üzerinden almak istiyorum. <span class="muted">(isteğe bağlı)</span></span></label>
+    <label class="consent"><input type="checkbox" name="consent_marketing" value="1" {% if form.consent_marketing %}checked{% endif %}>
+      <span>Kampanya ve duyurulardan WhatsApp üzerinden haberdar olmak istiyorum. <span class="muted">(isteğe bağlı, istediğiniz zaman geri alabilirsiniz)</span></span></label>
+    <button class="btn btn--primary btn--block" type="submit" style="min-height:52px;margin-top:10px">Randevu Talebini Gönder</button>
+    <p class="small muted" style="margin:10px 0 0;text-align:center">Talebiniz onaylandığında randevunuz kesinleşir.</p>
+  </form>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

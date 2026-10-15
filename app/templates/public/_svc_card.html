@@ -1,0 +1,13 @@
+{% macro svc_card(s) -%}
+<a class="svc" href="{{ url_for('public.service', slug=s.slug) }}">
+  {% if s.image_media_id %}<div class="svc__img"><img src="{{ url_for('catalog.media', media_id=s.image_media_id) }}" alt="{{ s.name }}" loading="lazy"></div>{% endif %}
+  <div class="svc__body">
+    <div class="svc__cat">{{ s.category or 'Hizmet' }}</div>
+    <div class="svc__name">{{ s.name }}{% if s.campaign_price_kurus is not none %} <span class="badge-camp">Kampanya</span>{% endif %}</div>
+    {% if s.short_description %}<div class="svc__desc">{{ s.short_description }}</div>{% endif %}
+    <div class="svc__meta"><span>{{ s.duration_minutes }} dk{% if s.tracks_sessions %} · seans{% endif %}</span>
+      {% if s.price_kurus %}<span class="price-tag">{% if s.campaign_price_kurus is not none %}<s>{{ s.price_kurus|money }}</s>{{ s.campaign_price_kurus|money }}{% else %}{{ s.price_kurus|money }}{% endif %}</span>{% endif %}
+    </div>
+  </div>
+</a>
+{%- endmacro %}

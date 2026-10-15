@@ -60,7 +60,7 @@ def get_service(db: Connection, service_id) -> dict:
 
 
 def staff_for_service(db: Connection, service_id: int) -> list[dict]:
-    return db.query("""SELECT st.id, st.full_name, st.color FROM staff st
+    return db.query("""SELECT st.id, st.full_name, st.color, st.title FROM staff st
                        JOIN staff_services ss ON ss.staff_id = st.id
                        WHERE ss.service_id = ? AND st.is_active = 1 AND st.deleted_at IS NULL
                        ORDER BY st.sort_order, st.full_name""", (service_id,))

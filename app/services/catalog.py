@@ -401,6 +401,7 @@ def save_settings(db: Connection, user: dict, form: dict) -> None:
     if len(hours) > 4:
         errors["reminders.hours_before"] = "En fazla 4 hatırlatma tanımlanabilir."
     values["reminders.hours_before"] = sorted(set(hours), reverse=True)
+    values["booking.online_enabled"] = bool(form.get("booking.online_enabled"))
     if errors:
         raise ValidationError(errors)
     import json

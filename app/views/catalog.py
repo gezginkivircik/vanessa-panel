@@ -212,6 +212,7 @@ def settings():
     errors: dict = {}
     values = svc.get_settings(db)
     form = {k: values.get(k, "") for k in svc.SETTING_FIELDS}
+    form["booking.online_enabled"] = values.get("booking.online_enabled", True)
     form["reminders.hours_before"] = ", ".join(str(h) for h in (values.get("reminders.hours_before") or []))
     if request.method == "POST":
         form = request.form.to_dict()

@@ -52,6 +52,8 @@ def create_app(overrides: dict | None = None) -> Flask:
             return
         if request.endpoint == "auth.login":
             return   # giriş formu kendi ön-oturum CSRF kontrolünü yapar
+        if request.endpoint and request.endpoint.startswith("public."):
+            return   # herkese açık formlar oturumsuz imzalı CSRF ile korunur (security/precsrf.py)
         if not csrf_valid():
             abort(400, description="Güvenlik doğrulaması başarısız (CSRF). Sayfayı yenileyip tekrar deneyin.")
 

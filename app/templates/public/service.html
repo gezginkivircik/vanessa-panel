@@ -1,0 +1,37 @@
+{% extends "public/_site.html" %}
+{% from "partials/icons.html" import icon %}
+{% from "public/_svc_card.html" import svc_card %}
+{% block title %}{{ s.name }} · Vanessa Güzellik Merkezi İskenderun{% endblock %}
+{% block description %}{{ s.short_description or (s.name ~ ' — Vanessa Güzellik Merkezi, İskenderun.') }}{% endblock %}
+{% block nav_class %}site-nav--line{% endblock %}
+{% block main %}
+<section class="sec">
+  <div class="wrap about">
+    <div>
+      <a class="small" href="{{ url_for('public.services') }}" style="color:var(--accent-ink)">← Tüm hizmetler</a>
+      <div class="eyebrow-l" style="margin-top:18px">{{ s.category or 'Hizmet' }}</div>
+      <h1 class="h-display" style="font-size:clamp(40px,8vw,64px);margin:10px 0 14px">{{ s.name }}</h1>
+      {% if s.short_description %}<p class="lead">{{ s.short_description }}</p>{% endif %}
+      <div class="hero__facts">
+        <span>{{ icon('clock') }} Yaklaşık {{ s.duration_minutes }} dakika</span>
+        {% if s.price_kurus %}<span class="price-tag">{% if s.campaign_price_kurus is not none %}<span class="badge-camp">Kampanya</span>&nbsp;<s>{{ s.price_kurus|money }}</s>{{ s.campaign_price_kurus|money }}{% else %}{{ s.price_kurus|money }}{% endif %}</span>{% endif %}
+      </div>
+      <div class="hero__cta">
+        {% if s.online_booking and booking_on %}<a class="btn btn--primary" href="{{ url_for('public.booking', hizmet=s.slug) }}">{{ icon('calendar') }} Bu hizmet için randevu al</a>{% endif %}
+        <a class="btn" href="https://wa.me/{{ BRAND.phone_e164|replace('+','') }}?text={{ ('Merhaba, ' ~ s.name ~ ' hakkında bilgi almak istiyorum.')|urlencode }}" target="_blank" rel="noopener">{{ icon('whatsapp') }} Bilgi al</a>
+      </div>
+    </div>
+    <div>
+      {% if s.image_media_id %}<img src="{{ url_for('catalog.media', media_id=s.image_media_id) }}" alt="{{ s.name }}" style="border-radius:24px;width:100%;aspect-ratio:4/3;object-fit:cover">{% endif %}
+      {% if s.description %}<div class="prose" style="margin-top:18px">{% for para in s.description.split('\n') if para.strip() %}<p>{{ para }}</p>{% endfor %}</div>{% endif %}
+      {% if s.tracks_sessions %}<div class="pillar" style="margin-top:18px"><h3 style="margin-top:0">Seanslı uygulama</h3><p>Bu uygulama birden fazla seans gerektirebilir. Paket alırsanız her bölgenin seansları ayrı takip edilir ve bir sonraki seans tarihiniz size hatırlatılır.</p></div>{% endif %}
+    </div>
+  </div>
+</section>
+{% if others %}
+<section class="sec sec--alt"><div class="wrap">
+  <div class="sec__head"><div><div class="eyebrow-l">{{ s.category }}</div><h2>Benzer uygulamalar</h2></div></div>
+  <div class="svc-grid">{% for o in others %}{{ svc_card(o) }}{% endfor %}</div>
+</div></section>
+{% endif %}
+{% endblock %}

@@ -7,6 +7,8 @@
 <form class="card form-card" method="post" novalidate>
   <div class="card__body">
     <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <label class="check" style="margin-bottom:14px"><input type="checkbox" name="booking.online_enabled" value="1" {% if form.get('booking.online_enabled') %}checked{% endif %}>
+      <span><strong>Web sitesinden online randevu alınsın</strong><br><span class="small muted">Kapalıyken sitedeki randevu sayfası telefon numarasını gösterir.</span></span></label>
     {% for key, (label, lo, hi) in FIELDS.items() %}
       <div class="field {{ 'field--error' if errors.get(key) }}"><label for="{{ key }}">{{ label }}</label>
         <input class="input" id="{{ key }}" name="{{ key }}" type="number" inputmode="numeric" min="{{ lo }}" max="{{ hi }}" value="{{ form.get(key, '') }}">{{ err(key) }}</div>

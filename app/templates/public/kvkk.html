@@ -1,0 +1,41 @@
+{% extends "public/_site.html" %}
+{% block title %}KVKK Aydınlatma Metni · Vanessa Güzellik Merkezi{% endblock %}
+{% block nav_class %}site-nav--line{% endblock %}
+{% block main %}
+<section class="sec"><div class="wrap prose">
+  <div class="eyebrow-l">Kişisel verilerin korunması</div>
+  <h1 class="h-display" style="font-size:clamp(34px,6vw,48px);margin:10px 0 6px">KVKK Aydınlatma Metni</h1>
+  <p class="small muted">Sürüm: {{ version }}</p>
+
+  <h2>Veri sorumlusu</h2>
+  <p>{{ BRAND.name }} ({{ BRAND.owner }}), {{ BRAND.address }} · Telefon: {{ BRAND.phone_display }}. 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) kapsamında veri sorumlusu sıfatıyla kişisel verilerinizi aşağıda açıklanan şekilde işler.</p>
+
+  <h2>İşlenen kişisel veriler</h2>
+  <ul>
+    <li><strong>Kimlik ve iletişim:</strong> ad, soyad, cep telefonu.</li>
+    <li><strong>Müşteri işlem bilgileri:</strong> randevu tarihleri, aldığınız hizmetler, seans ve paket bilgileri, ödeme kayıtları, sizin veya ekibimizin eklediği notlar.</li>
+    <li><strong>İzin tercihleri:</strong> WhatsApp üzerinden bilgilendirme ve kampanya mesajı alma tercihleriniz.</li>
+  </ul>
+
+  <h2>İşleme amaçları ve hukuki sebepler</h2>
+  <ul>
+    <li>Randevu talebinizin alınması, planlanması, onaylanması ve hizmetin sunulması — sözleşmenin kurulması ve ifası (KVKK m.5/2-c).</li>
+    <li>Seans, paket ve ödeme takibinin yapılması; yasal kayıt yükümlülüklerinin yerine getirilmesi — sözleşmenin ifası ve hukuki yükümlülük (m.5/2-c, m.5/2-ç).</li>
+    <li>Randevu onayı ve hatırlatmalarının WhatsApp ile gönderilmesi — bu yönde verdiğiniz tercih doğrultusunda.</li>
+    <li>Kampanya ve duyuruların gönderilmesi — yalnızca açık rızanız varsa (m.5/1). Rıza vermemeniz hizmet almanızı etkilemez.</li>
+  </ul>
+
+  <h2>Aktarım</h2>
+  <p>Verileriniz pazarlama amacıyla üçüncü kişilerle paylaşılmaz. Sistemin barındırıldığı bulut hizmet sağlayıcısı ve (tercih etmeniz halinde) mesaj gönderimi için WhatsApp Business altyapısı, yalnızca hizmetin sunulması için gerekli ölçüde veri işler. Bu sağlayıcıların sunucuları yurt dışında bulunabilir. Yasal zorunluluk halinde yetkili kamu kurumlarıyla paylaşım yapılabilir.</p>
+
+  <h2>Toplama yöntemi</h2>
+  <p>Verileriniz bu web sitesindeki randevu formu, telefon, WhatsApp veya merkezimizde yüz yüze iletişim yoluyla elektronik ortamda toplanır.</p>
+
+  <h2>Saklama süresi</h2>
+  <p>Kayıtlarınız müşteri ilişkimiz süresince ve ilgili mevzuatta öngörülen süreler boyunca saklanır; süre sonunda silinir, yok edilir veya anonim hale getirilir.</p>
+
+  <h2>Haklarınız</h2>
+  <p>KVKK m.11 uyarınca; verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, düzeltilmesini veya silinmesini isteme, işlemenin amacını öğrenme, aktarıldığı kişileri bilme, itiraz etme ve zararın giderilmesini talep etme haklarına sahipsiniz. Pazarlama mesajı iznini istediğiniz zaman WhatsApp üzerinden “İPTAL” yazarak veya bizi arayarak geri alabilirsiniz.</p>
+  <p>Başvurularınızı {{ BRAND.address }} adresine yazılı olarak veya {{ BRAND.phone_display }} numarası üzerinden iletebilirsiniz.</p>
+</div></section>
+{% endblock %}

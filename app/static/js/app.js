@@ -238,3 +238,18 @@
     setTimeout(function () { delete form.dataset.submitting; }, 4000);
   });
 })();
+
+// Web sitesi: kaydırınca üst menüye ince çizgi
+(function () {
+  var nav = document.querySelector("[data-sticky-nav]");
+  if (!nav) return;
+  function upd() { nav.classList.toggle("is-scrolled", window.scrollY > 8); }
+  window.addEventListener("scroll", upd, { passive: true });
+  upd();
+})();
+
+// Online randevu: seçili günü görünür alana kaydır
+(function () {
+  var sel = document.querySelector('.days [aria-current="true"]');
+  if (sel && sel.parentNode) sel.parentNode.scrollLeft = sel.offsetLeft - sel.parentNode.offsetLeft - 12;
+})();

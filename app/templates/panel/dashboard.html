@@ -86,7 +86,7 @@
       {% if d.unread_notifications %}
       <ul class="notice-list">
         {% for nt in d.unread_notifications %}
-          <li><strong>{{ nt.title }}</strong>{% if nt.body %}<br><span class="muted small">{{ nt.body }}</span>{% endif %}</li>
+          <li>{% if nt.link %}<a href="{{ url_for('panel.open_notification', notification_id=nt.id) }}"><strong>{{ nt.title }}</strong></a>{% else %}<strong>{{ nt.title }}</strong>{% endif %}{% if nt.body %}<br><span class="muted small">{{ nt.body }}</span>{% endif %}</li>
         {% endfor %}
       </ul>
       {% else %}<p class="muted" style="margin:0">Okunmamış bildirim yok.</p>{% endif %}

@@ -1,0 +1,12 @@
+{% extends "public/_site.html" %}
+{% block title %}Bağlantı geçersiz · Vanessa Güzellik Merkezi{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block nav_class %}site-nav--line{% endblock %}
+{% block main %}
+<div class="bk">
+  <div class="eyebrow-l">Randevu</div>
+  <h1>Bağlantı geçersiz veya süresi dolmuş</h1>
+  <p class="lead">Randevunuzla ilgili bilgi almak için bizi arayabilir ya da yeni bir randevu talebi oluşturabilirsiniz.</p>
+  <div class="hero__cta"><a class="btn btn--primary" href="{{ url_for('public.booking') }}">Online randevu</a><a class="btn" href="tel:{{ BRAND.phone_e164 }}">{{ BRAND.phone_display }}</a></div>
+</div>
+{% endblock %}
