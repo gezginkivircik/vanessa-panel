@@ -118,12 +118,14 @@ def create_app(overrides: dict | None = None) -> Flask:
     from .views.public import bp as public_bp
     from .views.customers import bp as customers_bp
     from .views.appointments import bp as appointments_bp
+    from .views.catalog import bp as catalog_bp
 
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(panel_bp)
     app.register_blueprint(customers_bp)
     app.register_blueprint(appointments_bp)
+    app.register_blueprint(catalog_bp)
 
     @app.get("/healthz")
     def healthz():

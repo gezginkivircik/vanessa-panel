@@ -1,0 +1,5 @@
+<nav class="tabs" aria-label="Yönetim">
+  {% for key, label, ep, perm in [('hizmetler','Hizmetler','catalog.services','services.manage'),('personel','Personel & Saatler','catalog.staff','staff.manage'),('izinler','İzin / Kapalı Günler','catalog.holidays','staff.manage'),('ayarlar','Randevu Ayarları','catalog.settings','settings.manage')] %}
+    {% if can(perm) %}<a href="{{ url_for(ep) }}" {% if tab == key %}aria-current="page"{% endif %}>{{ label }}</a>{% endif %}
+  {% endfor %}
+</nav>

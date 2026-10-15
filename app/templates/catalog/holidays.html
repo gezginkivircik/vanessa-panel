@@ -1,0 +1,40 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}İzin / Kapalı Günler{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Yönetim</div><h1>İzin & Kapalı Günler</h1></div></div>
+{% include "catalog/_tabs.html" %}
+<div class="grid-2">
+  <div class="card">
+    <div class="card__head"><div class="card__title">Yaklaşan</div></div>
+    <div class="card__body" style="padding-top:6px">
+    {% for h in rows %}
+      <div class="consent-row" style="padding-left:0;padding-right:0">
+        <span><strong>{{ h.staff_name or 'Bütün merkez kapalı' }}</strong><br>
+          <span class="small">{{ h.start_date|date(true) }}{% if h.end_date != h.start_date %} – {{ h.end_date|date(true) }}{% endif %}</span>
+          {% if h.reason %}<span class="small muted"> · {{ h.reason }}</span>{% endif %}</span>
+        <form method="post" action="{{ url_for('catalog.holiday_delete', holiday_id=h.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button class="link-btn" type="submit" data-confirm="Silinsin mi?">Sil</button></form>
+      </div>
+    {% else %}<p class="muted" style="margin:0">Yaklaşan izin veya kapalı gün yok.</p>{% endfor %}
+    </div>
+  </div>
+  <form class="card" method="post" novalidate>
+    <div class="card__head"><div class="card__title">Yeni Ekle</div></div>
+    <div class="card__body">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      {% if errors %}<div class="alert alert--error">{% for e in errors.values() %}{{ e }}<br>{% endfor %}</div>{% endif %}
+      <div class="field"><label for="staff_id">Kim için?</label>
+        <select class="input" id="staff_id" name="staff_id">
+          <option value="">Bütün merkez (resmî tatil, bayram vb.)</option>
+          {% for s in staff %}<option value="{{ s.id }}" {% if form.staff_id|string == s.id|string %}selected{% endif %}>{{ s.full_name }}</option>{% endfor %}
+        </select></div>
+      <div class="form-grid form-grid--2">
+        <div class="field"><label for="start_date">Başlangıç</label><input class="input" type="date" id="start_date" name="start_date" value="{{ form.start_date or '' }}" required></div>
+        <div class="field"><label for="end_date">Bitiş <span class="muted">(tek gün ise boş)</span></label><input class="input" type="date" id="end_date" name="end_date" value="{{ form.end_date or '' }}"></div>
+      </div>
+      <div class="field"><label for="reason">Açıklama</label><input class="input" id="reason" name="reason" value="{{ form.reason or '' }}" maxlength="160" placeholder="Yıllık izin, Kurban Bayramı…"></div>
+      <p class="small muted" style="margin-top:0">Eklenen günlerde o uzmana (veya kimseye) yeni randevu verilemez. Mevcut randevular otomatik iptal edilmez; çakışma varsa uyarı gösterilir.</p>
+      <div class="form-actions"><button class="btn btn--primary" type="submit">Ekle</button></div>
+    </div>
+  </form>
+</div>
+{% endblock %}

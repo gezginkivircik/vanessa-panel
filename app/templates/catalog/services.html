@@ -1,0 +1,31 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Hizmetler{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Yönetim</div><h1>Hizmetler</h1></div>
+  <a class="btn btn--primary" href="{{ url_for('catalog.service_new') }}">+ Yeni Hizmet</a>
+</div>
+{% include "catalog/_tabs.html" %}
+<div class="card">
+  <ul class="clist">
+  {% for s in rows %}
+    <li><a href="{{ url_for('catalog.service_edit', service_id=s.id) }}" class="{{ 'is-dim' if not s.is_active }}">
+      {% if s.image_media_id %}<img class="thumb" src="{{ url_for('catalog.media', media_id=s.image_media_id) }}" alt="" loading="lazy">
+      {% else %}<span class="avatar" aria-hidden="true">{{ s.name[:1] }}</span>{% endif %}
+      <span>
+        <span class="clist__name">{{ s.name }}</span>
+        {% if not s.is_active %}<span class="status status--completed" style="margin-left:6px">Pasif</span>{% endif %}
+        {% if s.tracks_sessions %}<span class="tag" style="margin-left:4px">Seanslı</span>{% endif %}
+        <br><span class="clist__meta">{{ s.category or 'Kategorisiz' }} · {{ s.duration_minutes }} dk{% if s.repeat_interval_days %} · {{ s.repeat_interval_days }} günde bir{% endif %} · {{ s.staff_count }} uzman</span>
+      </span>
+      <span class="clist__side">
+        {% if s.campaign_price_kurus is not none %}<strong>{{ s.campaign_price_kurus|money }}</strong><s>{{ s.price_kurus|money }}</s>
+        {% else %}<strong>{{ s.price_kurus|money }}</strong>{% endif %}
+      </span>
+    </a></li>
+  {% else %}
+    <li style="padding:18px" class="muted">Henüz hizmet yok.</li>
+  {% endfor %}
+  </ul>
+</div>
+{% endblock %}

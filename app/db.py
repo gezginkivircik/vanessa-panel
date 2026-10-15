@@ -28,6 +28,7 @@ _MACROS = {
         "@DATE": "TEXT",
         "@TIME": "TEXT",
         "@JSON": "TEXT",
+        "@BLOB": "BLOB",
         "@NOW": "(strftime('%Y-%m-%dT%H:%M:%SZ','now'))",
     },
     "postgres": {
@@ -37,6 +38,7 @@ _MACROS = {
         "@DATE": "DATE",
         "@TIME": "TIME",
         "@JSON": "JSONB",
+        "@BLOB": "BYTEA",
         "@NOW": "now()",
     },
 }
@@ -73,6 +75,8 @@ def _normalize(value: Any) -> Any:
         return value.isoformat()
     if isinstance(value, _dt.time):
         return value.strftime("%H:%M")
+    if isinstance(value, memoryview):
+        return bytes(value)
     if isinstance(value, Decimal):
         return int(value) if value == value.to_integral_value() else float(value)
     if isinstance(value, (dict, list)):

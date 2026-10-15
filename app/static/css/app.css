@@ -577,3 +577,28 @@ details.card > summary::-webkit-details-marker { display: none; }
 .quick strong { font-size: 18px; }
 .appt--short { flex-direction: row; align-items: center; gap: 6px; padding-top: 2px; padding-bottom: 2px; }
 .appt--short .appt__what { display: none; }
+
+/* ============================================================ FAZ 3: YÖNETİM */
+.fieldset { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 14px 12px; margin: 4px 0 16px; }
+.fieldset legend { font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0 6px; }
+.thumb { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+.clist a.is-dim, .staff-card.is-dim { opacity: .55; }
+.clist__side s { display: block; font-size: 12px; }
+.staff-grid { display: grid; gap: 12px; }
+@media (min-width: 720px) { .staff-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .staff-grid { grid-template-columns: repeat(3, 1fr); } }
+.staff-card { padding: 16px; display: grid; gap: 12px; text-decoration: none; }
+.week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.week-strip span { text-align: center; font-size: 11.5px; padding: 6px 0; border-radius: 6px; font-weight: 600; }
+.week-strip .on { background: var(--st-confirmed-bg); color: var(--st-confirmed); }
+.week-strip .off { background: var(--bg-sunken); color: var(--ink-3); }
+.hours { display: grid; gap: 8px; }
+.hours__row { display: grid; grid-template-columns: 1fr 104px 10px 104px; gap: 6px; align-items: center; }
+.hours__row .input { min-height: 40px; padding: 6px 8px; font-size: 15px; }
+.hours__row.field--error .input { border-color: var(--danger); }
+.inline-form { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
+.inline-form .input { min-height: 40px; padding: 6px 10px; font-size: 15px; }
+@media (min-width: 720px) { .inline-form { grid-template-columns: 1.2fr .8fr .8fr 1.2fr auto; } }
+.grid-2 > * { min-width: 0; }
+.hours__row { grid-template-columns: minmax(84px, 1fr) minmax(0, 120px) 8px minmax(0, 120px); }
+.hours__row .input { padding: 6px 4px; font-size: 14px; }

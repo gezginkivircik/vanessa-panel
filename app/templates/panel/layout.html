@@ -12,7 +12,7 @@
   {% if can('reports.view') %}<a class="is-soon" aria-disabled="true">{{ icon('chart') }}Raporlar<span class="soon">Faz 11</span></a>{% endif %}
   {% if can('users.manage') or can('audit.view') %}
     <div class="nav__label">Yönetim</div>
-    {% if can('services.manage') %}<a class="is-soon" aria-disabled="true">{{ icon('sparkle') }}Hizmetler & Personel<span class="soon">Faz 3</span></a>{% endif %}
+    {% if can('services.manage') %}<a href="{{ url_for('catalog.services') }}" {% if ep and ep.startswith('catalog.') %}aria-current="page"{% endif %}>{{ icon('sparkle') }}Hizmetler & Personel</a>{% endif %}
     {% if can('users.manage') %}<a href="{{ url_for('panel.users') }}" {% if ep and ep.startswith('panel.user') %}aria-current="page"{% endif %}>{{ icon('key') }}Kullanıcılar</a>{% endif %}
     {% if can('audit.view') %}<a href="{{ url_for('panel.audit_log') }}" {% if ep == 'panel.audit_log' %}aria-current="page"{% endif %}>{{ icon('shield') }}İşlem Kayıtları</a>{% endif %}
   {% endif %}

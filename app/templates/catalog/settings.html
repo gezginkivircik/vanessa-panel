@@ -1,0 +1,20 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Randevu Ayarları{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field__error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Yönetim</div><h1>Randevu Ayarları</h1></div></div>
+{% include "catalog/_tabs.html" %}
+<form class="card form-card" method="post" novalidate>
+  <div class="card__body">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    {% for key, (label, lo, hi) in FIELDS.items() %}
+      <div class="field {{ 'field--error' if errors.get(key) }}"><label for="{{ key }}">{{ label }}</label>
+        <input class="input" id="{{ key }}" name="{{ key }}" type="number" inputmode="numeric" min="{{ lo }}" max="{{ hi }}" value="{{ form.get(key, '') }}">{{ err(key) }}</div>
+    {% endfor %}
+    <div class="field {{ 'field--error' if errors.get('reminders.hours_before') }}"><label for="rem">WhatsApp hatırlatma zamanları (randevudan kaç saat önce)</label>
+      <input class="input" id="rem" name="reminders.hours_before" value="{{ form.get('reminders.hours_before', '') }}" placeholder="24, 2">
+      <span class="field__hint">Virgülle ayırın. Örn. "24, 2" → 1 gün önce ve 2 saat önce. Hatırlatmalar Faz 9'da devreye girer.</span>{{ err('reminders.hours_before') }}</div>
+    <div class="form-actions"><button class="btn btn--primary" type="submit">Kaydet</button></div>
+  </div>
+</form>
+{% endblock %}

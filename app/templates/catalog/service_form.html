@@ -1,0 +1,71 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}{{ form.name or 'Yeni Hizmet' }}{% endblock %}
+{% macro err(name) %}{% if errors.get(name) %}<span class="field__error">{{ errors[name] }}</span>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow"><a href="{{ url_for('catalog.services') }}">Hizmetler</a></div>
+  <h1>{{ form.name if service_id else 'Yeni Hizmet' }}</h1></div></div>
+{% if errors %}<div class="alert alert--error">Lütfen işaretli alanları kontrol edin.</div>{% endif %}
+<form class="card form-card" method="post" enctype="multipart/form-data" novalidate style="max-width:720px">
+  <div class="card__body">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <div class="form-grid form-grid--2">
+      <div class="field {{ 'field--error' if errors.get('name') }}"><label for="name">Hizmet adı</label>
+        <input class="input" id="name" name="name" value="{{ form.name or '' }}" required maxlength="120">{{ err('name') }}</div>
+      <div class="field"><label for="category">Kategori</label>
+        <input class="input" id="category" name="category" value="{{ form.category or '' }}" list="cats" maxlength="60" placeholder="Cilt, Lazer, El & Ayak…">
+        <datalist id="cats">{% for c in categories %}<option value="{{ c }}">{% endfor %}</datalist></div>
+    </div>
+    <div class="field"><label for="short_description">Kısa açıklama <span class="muted">(sitede kartta görünür)</span></label>
+      <input class="input" id="short_description" name="short_description" value="{{ form.short_description or '' }}" maxlength="255"></div>
+    <div class="field"><label for="description">Detaylı açıklama</label>
+      <textarea class="input" id="description" name="description" rows="4" maxlength="5000">{{ form.description or '' }}</textarea></div>
+
+    <div class="form-grid form-grid--2">
+      <div class="field {{ 'field--error' if errors.get('duration_minutes') }}"><label for="duration_minutes">İşlem süresi (dk)</label>
+        <input class="input" id="duration_minutes" name="duration_minutes" type="number" inputmode="numeric" min="5" max="600" step="5" value="{{ form.duration_minutes or '' }}">{{ err('duration_minutes') }}</div>
+      <div class="field {{ 'field--error' if errors.get('buffer_minutes') }}"><label for="buffer_minutes">Sonrasında ara (dk) <span class="muted">(temizlik/hazırlık)</span></label>
+        <input class="input" id="buffer_minutes" name="buffer_minutes" type="number" inputmode="numeric" min="0" max="120" step="5" value="{{ form.buffer_minutes or 0 }}">{{ err('buffer_minutes') }}</div>
+      <div class="field {{ 'field--error' if errors.get('price') }}"><label for="price">Fiyat (TL)</label>
+        <input class="input" id="price" name="price" inputmode="decimal" value="{{ form.price or '' }}" placeholder="1500">{{ err('price') }}</div>
+      <div class="field {{ 'field--error' if errors.get('campaign_price') }}"><label for="campaign_price">Kampanyalı fiyat (TL) <span class="muted">(boş = kampanya yok)</span></label>
+        <input class="input" id="campaign_price" name="campaign_price" inputmode="decimal" value="{{ form.campaign_price or '' }}">{{ err('campaign_price') }}</div>
+      <div class="field {{ 'field--error' if errors.get('repeat_interval_days') }}"><label for="repeat_interval_days">Önerilen tekrar süresi (gün)</label>
+        <input class="input" id="repeat_interval_days" name="repeat_interval_days" type="number" inputmode="numeric" min="1" max="730" value="{{ form.repeat_interval_days or '' }}" placeholder="ör. 20">
+        <span class="field__hint">İşlem tamamlanınca sonraki tarih bu süreye göre hesaplanır ve hatırlatma gönderilir. Boş bırakılırsa hatırlatma yapılmaz.</span>{{ err('repeat_interval_days') }}</div>
+      <div class="field"><label for="sort_order">Sıra</label>
+        <input class="input" id="sort_order" name="sort_order" type="number" min="0" max="999" value="{{ form.sort_order or 0 }}"></div>
+    </div>
+
+    <fieldset class="fieldset"><legend>Seçenekler</legend>
+      <label class="check"><input type="checkbox" name="is_active" value="1" {% if form.is_active %}checked{% endif %}><span><strong>Aktif</strong> — randevu verilebilir</span></label>
+      <label class="check"><input type="checkbox" name="online_booking" value="1" {% if form.online_booking %}checked{% endif %}><span><strong>Online randevuda göster</strong></span></label>
+      <label class="check"><input type="checkbox" name="tracks_sessions" value="1" {% if form.tracks_sessions %}checked{% endif %}><span><strong>Seanslı / paketli hizmet</strong> — lazer gibi; tamamlanınca paketten seans düşer</span></label>
+    </fieldset>
+
+    <fieldset class="fieldset"><legend>Bu hizmeti yapan uzmanlar</legend>
+      {% for st in staff %}
+        <label class="check"><input type="checkbox" name="staff_ids" value="{{ st.id }}" {% if st.id in (form.staff_ids or []) %}checked{% endif %}><span><span class="dot" style="background:{{ st.color }}"></span> {{ st.full_name }}</span></label>
+      {% endfor %}
+    </fieldset>
+
+    <fieldset class="fieldset {{ 'field--error' if errors.get('image') }}"><legend>Görsel <span class="muted">(PNG, JPG, WEBP · en fazla 2 MB)</span></legend>
+      {% if form.image_media_id %}
+        <img src="{{ url_for('catalog.media', media_id=form.image_media_id) }}" alt="" style="max-width:220px;border-radius:12px;margin-bottom:10px">
+        <label class="check"><input type="checkbox" name="remove_image" value="1"><span>Görseli kaldır</span></label>
+      {% endif %}
+      <input class="input" type="file" name="image" accept="image/png,image/jpeg,image/webp">{{ err('image') }}
+    </fieldset>
+
+    <div class="form-actions">
+      <a class="btn btn--ghost" href="{{ url_for('catalog.services') }}">Vazgeç</a>
+      <button class="btn btn--primary" type="submit">Kaydet</button>
+    </div>
+  </div>
+</form>
+{% if service_id %}
+<form method="post" action="{{ url_for('catalog.service_delete', service_id=service_id) }}" style="max-width:720px;margin-top:14px">
+  <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+  <button class="btn btn--danger btn--sm" type="submit" data-confirm="Hizmet silinsin mi? Geçmiş randevu kayıtları korunur.">Hizmeti Sil</button>
+</form>
+{% endif %}
+{% endblock %}

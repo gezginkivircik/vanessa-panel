@@ -1,0 +1,25 @@
+{% extends "panel/layout.html" %}
+{% block page_title %}Personel{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Yönetim</div><h1>Personel & Çalışma Saatleri</h1></div>
+  <a class="btn btn--primary" href="{{ url_for('catalog.staff_new') }}">+ Yeni Personel</a>
+</div>
+{% include "catalog/_tabs.html" %}
+<div class="staff-grid">
+{% for s in rows %}
+  <a class="card staff-card {{ 'is-dim' if not s.is_active }}" href="{{ url_for('catalog.staff_edit', staff_id=s.id) }}">
+    <div style="display:flex;gap:12px;align-items:center">
+      <span class="avatar" style="background:{{ s.color }}22;color:{{ s.color }}">{{ s.full_name[:1] }}</span>
+      <div><strong>{{ s.full_name }}</strong>{% if not s.is_active %} <span class="status status--completed">Pasif</span>{% endif %}<br><span class="small muted">{{ s.title or '' }}</span></div>
+    </div>
+    <div class="week-strip">
+      {% for d in range(7) %}{% set h = s.hours.get(d) %}
+        <span class="{{ 'on' if h else 'off' }}" title="{{ WEEKDAYS[d] }}{% if h %} {{ h.start_time }}–{{ h.end_time }}{% else %} kapalı{% endif %}">{{ WEEKDAYS[d][:2] }}</span>
+      {% endfor %}
+    </div>
+    <div class="small muted">{{ s.services|join(' · ') or 'Hizmet atanmadı' }}</div>
+  </a>
+{% endfor %}
+</div>
+{% endblock %}
